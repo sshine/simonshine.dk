@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero is-small is-blocky">
+  <div class="hero-body has-text-centered">
+    <p class="title is-size-1">
+      {{ page.title }}
+    </p>
+    <p class="subtitle">
+      {{ page.date | date(format="%B %d, %Y") }}
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {{ page.content | safe }}
+  </div>
+</section>
+
+{% endblock content %}

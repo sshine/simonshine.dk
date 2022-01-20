@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<script src="/hexmaze.js"></script>
+<script>
+  $(function () {
+    var app = Elm.Main.init({
+      node: document.getElementById('hexmaze')
+    });
+  });
+</script>
+
+<section class="hero is-small is-blocky">
+  <div class="hero-body has-text-centered">
+    <p class="title is-size-1">
+      {{ config.title }}
+    </p>
+    <p class="subtitle">
+      {{ config.extra.site_tagline }}
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+
+    <h1>Welcome!</h1>
+
+    <div class="columns">
+      <div class="column is-8">
+        <p>
+          You have landed on the personal homepage of Simon Shine.
+        </p>
+
+        <p>
+          I am a cellular automaton from Copenhagen, Denmark.
+        </p>
+
+        <div class="has-text-centered">
+          <div id="hexmaze"></div>
+        </div>
+
+        <p>
+          As most personal homepages go, mine also does not come with any guarantee of frequent updates. In fact,
+          deciding what to put on my homepage was always a struggle. I started blogging in 2020 and have now moved
+          my blog posts here. Before that, the only surviving material was a collection of interesthing
+          <a href="/links">things I found online</a>. I've found dozens of interesting things online every single
+          day since I connected to the internet. The criteria for the few things on this list is that they stayed.
+        </p>
+
+        <p>
+          In this January 2022 version of my homepage, for the first time in the page's history, it comes with
+          easily accessible syntax highlighting of code, as well as MathJax equations. These were features I made
+          for another website, but realising how cool this is, I want to celebrate by posting a random equation
+          from <a href="http://www.elegantcoding.com/2011/11/eleven-equations-true-computer-science.html">11
+            computer science equations</a> on the Elegant Coding blog:
+        </p>
+
+        $$ H(X) = E_X[I(x)] = - \sum_{i}^n P(x_i) \log_2 P(x_i) $$
+
+        <p>
+          ... which is a definition of <a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)">entropy</a>.
+          I will use the opportunity to segway into cool stuff I found online by first mentioning Asimov's
+          <a href="https://physics.princeton.edu/ph115/LQ.pdf">The Last Question</a> (1956).
+        </p>
+      </div>
+      <div class="column is-4 has-text-centered">
+        <img src="/sshine-white.jpg" alt="(Some would say that this is me.)">
+        <br>
+        <p><i>(Some would say that this is me.)</i></p>
+        <hr>
+        <img src="/sshine-2021.svg" width="512px" height="512px" alt="(Some would say that this is me.)">
+        <br>
+        <p><i>(Others would say that this is me.)</i></p>
+      </div>
+    </div>
+
+    <hr>
+
+    <h2>Stuff I found...</h2>
+
+    <ul>
+      <li><a
+          href="https://ebiquity.umbc.edu/blogger/2008/01/19/how-dr-suess-would-prove-the-halting-problem-undecidable/">Dr.
+          Seuss and the Halting Problem</a> (2020)</li>
+      <li><a href="https://www.youtube.com/watch?v=hS_AXRRnIzM">The Rememberer</a> (2020)</li>
+      <li><a href="http://www.scottaaronson.com/blog/?p=1820">Eigenmorality</a> (2014)</li>
+      <li><a href="http://chronicle.com/article/The-Shadow-Scholar/125329/">The Shadow Scholar</a> (2010)</li>
+      <li><a href="http://www.chiark.greenend.org.uk/~sgtatham/dice/">A pair of dice that never roll 7</a> (2006)
+      </li>
+      <li><a href="http://www.scottaaronson.com/writings/bignumbers.html">Who can name the bigger number?</a> (2005)
+      </li>
+      <li><a href="http://insecure.org/stc/">Return on Investment</a> (2004)</li>
+      <li><a href="http://m.nifty.org/nifty/lesbian/sf-fantasy/alien-sensations/1">Alien Sensations</a> (2003)</li>
+      <li><a href="http://www.nytimes.com/books/first/h/hoffman-man.html">The Man Who Loved Only Numbers</a> (1998)
+      </li>
+      <li><a href="http://www.niquette.com/books/sophmag/heurist.htm">Discovering Assumptions</a> (1996)</li>
+      <li><a href="http://www.princeton.edu/~pkrugman/interstellar.pdf">The Theory of Interstellar Trade</a> (1978)
+      </li>
+      <li><a href="https://www.ndsu.edu/pubweb/~cinichol/CreativeWriting/323/MarquezManwithWings.htm">A Very Old Man
+          with Enormous Wings</a> (1955)</li>
+      <li><a href="https://blogs.baruch.cuny.edu/greatworksiijwa/files/2016/02/The-House-of-Asterion.pdf">The House
+          of Asterion</a> (1947)</li>
+    </ul>
+
+    <div class="hero-body has-text-centered">
+      <video width="320" height="240" controls>
+        <source src="oppenheimer.mp4" type="video/mp4">
+      </video>
+    </div>
+
+  </div>
+</section>
+{% endblock content %}

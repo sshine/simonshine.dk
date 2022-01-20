@@ -1,0 +1,21 @@
+# The Site URL for absolute URLs
+base_url = "https://simonshine.dk"
+title = "Simon Shine's Page"
+
+# Compile all Sass in sass/* to CSS
+compile_sass = true
+
+[markdown]
+highlight_code = true
+
+[extra]
+site_tagline = ""
+site_menu_left = [
+  { title = "Blog", url = "/blog" },
+  # { title = "Museum", url = "/museum" },
+  { title = "Contact", url = "/contact" },
+]
+site_menu_right = [
+  { title = "GitHub", url = "https://github.com/sshine" },
+  { title = "StackOverflow", url = "https://stackexchange.com/users/84370/simon-shine" },
+]

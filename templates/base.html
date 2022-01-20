@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>{{ config.title }}{% if config.extra.site_tagline %} &ndash; {{ config.extra.site_tagline }}{% endif %}</title>
+  <link rel="stylesheet" href="{{ get_url(path="main.css") }}">
+  <script src="/js/zepto.min.js"></script>
+  <script src="/js/polyfill.min.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+  </script>
+</head>
+
+<body>
+  {% block body %}
+  <header class="header">
+    <nav class="navbar is-spaced is-blocky" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item navbar-logo-item" href="{{ get_url(path="", trailing_slash=false) }}">
+          {{ config.title }}
+        </a>
+      </div>
+
+      <div class="navbar-menu">
+        <div class="navbar-start">
+          {% for link in config.extra.site_menu_left %}
+          <a class="navbar-item" href="{{ link.url }}">
+            {{ link.title }}
+          </a>
+          {% endfor %}
+        </div>
+
+        <div class="navbar-end">
+          {% for link in config.extra.site_menu_right %}
+          <a class="navbar-item" href="{{ link.url }}">
+            {{ link.title }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="main">
+    {% block content %}
+    {% endblock content %}
+  </main>
+
+  <footer class="footer">
+    <p class="has-text-centered">
+      &copy; 2004 &ndash; {{ now() | date(format="%Y") }}
+    </p>
+  </footer>
+  {% endblock body %}
+</body>
+
+</html>
