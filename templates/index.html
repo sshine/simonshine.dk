@@ -28,12 +28,28 @@
         <p>
           because it allows for efficient prime field arithmetic. It is similar to the <a
             href="https://eprint.iacr.org/2015/625.pdf">Goldilocks prime</a>,
-          $2^{448} - 2^{224} - 1$ as the golden ratio is a root of $\phi^2 - \phi - 1$ with $\phi ≡ 2^{224}$.
-          In that sense, this prime is Goldilock-<i>ish</i>.
+          $2^{448} - 2^{224} - 1$, as the golden ratio is a root of $\phi^2 - \phi - 1$ with $\phi ≡ 2^{224}$,
+          but due to the small offset, this prime is Goldilock-<i>ish</i>.
         </p>
 
-        <h2>Hexagonal maze</h2>
+        <h2>Creative writing</h2>
+        {% set svensker = get_page(path="blog/2003-01-01-hvorfor-maa-jeg-ikke-eje-en-svensker.md") %}
+        {% set monoids = get_page(path="blog/2020-10-04-getting-recursively-drunk-with-monoids.md") %}
         <p>
+          Of my available online writing, I consider only
+          <a href="{{ svensker.permalink }}">{{ svensker.title }}</a> and
+          <a href="{{ monoids.permalink }}">{{ monoids.title }}</a> well-written,
+          but you can read a bunch of other small texts on <a href="/blog">blog</a>.
+        </p>
+
+        <h2>Cellular automata and non-square tilings</h2>
+        <p>
+          I sometimes wonder what life is like for other cellular automata. It seems that
+          most <a href="https://matejker.github.io/game-of-life/hexagonal.html">hexagonal Game of Life adaptations</a>
+          reduces the complexity rather fast; perhaps hexagonal tiles are better suited for
+          creating order rather than chaos, like <a href="https://eng.uber.com/h3/">Uber's H3</a>.
+          Then how about <a href="https://misc.0o0o.org/penrose/">Penrose tilings</a>, can they
+          <a href="https://arxiv.org/pdf/1708.09301.pdf">sustain life</a>?
           I wanted to create a browser game using hexagons, but I didn't get very far. Here's a <a
             href="https://github.com/sshine/elm-hexmaze">small demo</a> that renders hexagons and
           reacts when you hover:

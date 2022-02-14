@@ -25,15 +25,13 @@ Now, according to the sketch there are plenty of bad ways to materialize this dr
 
 Recursively,
 
-```
+$$
 superdrinks(n) = 1 × gin
                + 2 × lemon
                + 3 × superdrinks (n-1)
-```
+$$
 
-As for `superdrinks(0)`, it could be water. It could be gin!
-
-Experimenting a little,
+As for $superdrinks(0)$, it could be water. It could be gin! Experimenting a little,
 
 ```
 superdrinks(1) = 1 × gin + 2 × lemon + 3 × superdrinks(0)
@@ -47,11 +45,11 @@ superdrinks(2) = 1 × gin + 2 × lemon + 3 × superdrinks(1)
 
 The relationship between the number of parts of each ingredient can be expressed in [closed form](https://en.wikipedia.org/wiki/Closed-form_expression) eliminating recursion:
 
-```
-superdrinks(n) = (3ⁿ - 1)/2 × gin
-               + (3ⁿ - 1) × lemon
-               + 3ⁿ × superdrinks(0)
-```
+$$
+superdrinks(n) = \tfrac{3^n - 1}{2} × gin
+               + (3^n - 1) × lemon
+               + 3^n × superdrinks(0)
+$$
 
 (You can find the closed form either by recognizing that the series *3 × 3 × ...* with *n* occurrences is *3ⁿ*, that there's always one less part lemon than *superdrinks(0)*, and that there's always half the amount of gin of that; or you can solve their [recurrence relation](https://en.wikipedia.org/wiki/Recurrence_relation); or you can expand the three number series using a function,
 
@@ -63,7 +61,7 @@ superdrinks(n) = (3ⁿ - 1)/2 × gin
 
 and [look](https://oeis.org/search?q=1%2C4%2C13%2C40%2C121) [them](https://oeis.org/search?q=2%2C8%2C26%2C80%2C242) [up](https://oeis.org/search?q=3%2C9%2C27%2C81%2C243).)
 
-It is time to get schwifty.
+## It is time to get schwifty.
 
 The following ingredients are enough to make gin-tonic and superdrinks:
 
