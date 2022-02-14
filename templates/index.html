@@ -11,72 +11,45 @@
   });
 </script>
 
-<section class="hero is-small is-blocky">
-  <div class="hero-body has-text-centered">
-    <p class="title is-size-1">
-      {{ config.title }}
-    </p>
-    <p class="subtitle">
-      {{ config.extra.site_tagline }}
-    </p>
-  </div>
-</section>
-
 <section class="section">
   <div class="container">
 
-    <h1>Welcome!</h1>
-
     <div class="columns">
       <div class="column is-8">
+        <h2>Welcome!</h2>
         <p>
           You have landed on the personal homepage of Simon Shine.
+          I am a cellular automaton from Copenhagen, Denmark. My
+          favorite prime is
         </p>
+
+        $$ 2^{64} - 2^{32} + 1 $$
 
         <p>
-          I am a cellular automaton from Copenhagen, Denmark.
+          because it allows for efficient prime field arithmetic. It is similar to the <a
+            href="https://eprint.iacr.org/2015/625.pdf">Goldilocks prime</a>,
+          $2^{448} - 2^{224} - 1$ as the golden ratio is a root of $\phi^2 - \phi - 1$ with $\phi ≡ 2^{224}$.
+          In that sense, this prime is Goldilock-<i>ish</i>.
         </p>
 
+        <h2>Hexagonal maze</h2>
+        <p>
+          I wanted to create a browser game using hexagons, but I didn't get very far. Here's a <a
+            href="https://github.com/sshine/elm-hexmaze">small demo</a> that renders hexagons and
+          reacts when you hover:
+        </p>
         <div class="has-text-centered">
           <div id="hexmaze"></div>
         </div>
 
-        <p>
-          As most personal homepages go, mine also does not come with any guarantee of frequent updates. In fact,
-          deciding what to put on my homepage was always a struggle. I started blogging in 2020 and have now moved
-          my blog posts here. Before that, the only surviving material was a collection of interesthing
-          <a href="/links">things I found online</a>. I've found dozens of interesting things online every single
-          day since I connected to the internet. The criteria for the few things on this list is that they stayed.
-        </p>
-
-        <p>
-          In this January 2022 version of my homepage, for the first time in the page's history, it comes with
-          easily accessible syntax highlighting of code, as well as MathJax equations. These were features I made
-          for another website, but realising how cool this is, I want to celebrate by posting a random equation
-          from <a href="http://www.elegantcoding.com/2011/11/eleven-equations-true-computer-science.html">11
-            computer science equations</a> on the Elegant Coding blog:
-        </p>
-
-        $$ H(X) = E_X[I(x)] = - \sum_{i}^n P(x_i) \log_2 P(x_i) $$
-
-        <p>
-          ... which is a definition of <a href="https://en.wikipedia.org/wiki/Entropy_(information_theory)">entropy</a>.
-          I will use the opportunity to segway into cool stuff I found online by first mentioning Asimov's
-          <a href="https://physics.princeton.edu/ph115/LQ.pdf">The Last Question</a> (1956).
-        </p>
       </div>
-      <div class="column is-4 has-text-centered">
-        <img src="/sshine-white.jpg" alt="(Some would say that this is me.)">
-        <br>
-        <p><i>(Some would say that this is me.)</i></p>
-        <hr>
-        <img src="/sshine-2021.svg" width="512px" height="512px" alt="(Some would say that this is me.)">
-        <br>
-        <p><i>(Others would say that this is me.)</i></p>
+
+      <div class="column is-4">
+        <div class="has-text-centered">
+          <img src="/sshine-white.jpg" alt="(Some would say that this is me.)">
+        </div>
       </div>
     </div>
-
-    <hr>
 
     <h2>Stuff I found...</h2>
 
@@ -104,11 +77,12 @@
           of Asterion</a> (1947)</li>
     </ul>
 
-    <div class="hero-body has-text-centered">
+
+    <!-- <div class="hero-body has-text-centered">
       <video width="320" height="240" controls>
         <source src="oppenheimer.mp4" type="video/mp4">
       </video>
-    </div>
+    </div> -->
 
   </div>
 </section>

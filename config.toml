@@ -10,12 +10,12 @@ highlight_code = true
 
 [extra]
 site_tagline = ""
-site_menu_left = [
+site_menu = [
+  { title = "Home", url = "/" },
   { title = "Blog", url = "/blog" },
+  { title = "中文", url = "/zhongwen" },
   # { title = "Museum", url = "/museum" },
-  { title = "Contact", url = "/contact" },
-]
-site_menu_right = [
+  # { title = "Contact", url = "/contact" },
   { title = "GitHub", url = "https://github.com/sshine" },
   { title = "StackOverflow", url = "https://stackexchange.com/users/84370/simon-shine" },
 ]

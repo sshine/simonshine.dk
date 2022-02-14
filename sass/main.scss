@@ -10,25 +10,27 @@
 //
 // https://bulma.io/documentation/components/navbar/#variables
 
-$navbar-item-color: #ffffff;
-$navbar-item-background-color: transparent;
-$navbar-item-hover-background-color: transparent;
-$navbar-background-color: #191919;
 
 @import 'bulma'; // 0.9.3, https://github.com/j1mc/bulma-scss
-@import 'formatting'; 
 
-.is-blocky {
-  background-color: #191919;
-  * {
-    color: #ffffff;
-  }
+* {
+  font-size: 110%;
 }
 
-.navbar {
-  padding: 2rem 3rem;
+.zhongwen {
+  font-family: "AR PL UKai CN";
+  font-size: 150%;
 }
 
-.navbar-logo-item {
-  font-weight: bold;
+mjx-container {
+  font-size: 100% !important;
+}
+
+header {
+  padding: 2em 0;
+}
+
+.is-penrose {
+  background: url(/img/penrose-2.png) center repeat-x;
+  height: 210px;
 }

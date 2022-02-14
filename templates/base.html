@@ -19,43 +19,29 @@
 
 <body>
   {% block body %}
-  <header class="header">
-    <nav class="navbar is-spaced is-blocky" role="navigation" aria-label="main navigation">
-      <div class="navbar-brand">
-        <a class="navbar-item navbar-logo-item" href="{{ get_url(path="", trailing_slash=false) }}">
-          {{ config.title }}
-        </a>
-      </div>
-
-      <div class="navbar-menu">
-        <div class="navbar-start">
-          {% for link in config.extra.site_menu_left %}
-          <a class="navbar-item" href="{{ link.url }}">
-            {{ link.title }}
-          </a>
-          {% endfor %}
-        </div>
-
-        <div class="navbar-end">
-          {% for link in config.extra.site_menu_right %}
-          <a class="navbar-item" href="{{ link.url }}">
-            {{ link.title }}
-          </a>
-          {% endfor %}
-        </div>
-      </div>
-    </nav>
+  <header class="header is-penrose">
+    <div class="container content">
+      <h1>{{ config.title }}</h1>
+      $\{\cdot$
+      {% for link in config.extra.site_menu %}
+      <a href="{{ link.url }}">
+        {{ link.title }}
+      </a>
+      $\cdot$
+      {% endfor %}
+      $\}$
+    </div>
   </header>
 
-  <main class="main">
+  <main class="main content">
     {% block content %}
     {% endblock content %}
   </main>
 
-  <footer class="footer">
-    <p class="has-text-centered">
-      &copy; 2004 &ndash; {{ now() | date(format="%Y") }}
-    </p>
+  <footer class="footer is-penrose">
+    <div class="has-text-centered">
+      &copy; 2004 &ndash; {{ now() | date(format="%Y") }} Simon Shine
+    </div>
   </footer>
   {% endblock body %}
 </body>

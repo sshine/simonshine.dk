@@ -2,19 +2,20 @@
 
 {% block content %}
 
-<section class="hero is-small is-blocky">
+<section class="hero is-small{% if page.extra.chinese %} zhongwen{% endif %}">
   <div class="hero-body has-text-centered">
-    <p class="title is-size-1">
+    <h1 class="title">
       {{ page.title }}
-    </p>
-    <p class="subtitle">
-      {{ page.date | date(format="%B %d, %Y") }}
-    </p>
+      </p>
+      <p class="subtitle">
+        {{ page.date | date(format="%B %d, %Y") }}
+      </p>
+    </h1>
   </div>
 </section>
 
-<section class="section">
-  <div class="container">
+<section class="section{% if page.extra.chinese %} zhongwen{% endif %}">
+  <div class="container content">
     {{ page.content | safe }}
   </div>
 </section>

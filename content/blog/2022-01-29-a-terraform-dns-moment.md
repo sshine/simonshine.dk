@@ -2,8 +2,6 @@
 title = "A Terraform DNS moment"
 +++
 
-# A Terraform DNS moment
-
 **tl;dr:** I stuck the IPv4 and IPv6 address of my VPS into an SPF record field text.
 
 I manage my DNS with Terraform. This means that past domain registration and changing nameservers, I manage DNS with the Terraform command-line interface and git. Today I experienced a moment of happiness when two pieces of personal infrastructure fitted.
