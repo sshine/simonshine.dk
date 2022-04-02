@@ -39,7 +39,9 @@ trait HasBase {
     fn get_base(&self) -> Base;
 }
 
-/// ...of which the simplest one is that `Base` has itself
+/// ...of which the simplest one is that `Base` has itself;
+/// but to avoid infinite recursion, we `impl BaseTrait` for
+/// `Base`.
 impl BaseTrait for Base {
     fn foo(&self) -> u64 {
         self.foo
