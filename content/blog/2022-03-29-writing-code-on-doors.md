@@ -83,12 +83,17 @@ It was at this time that I changed the policy and let go of the "Dishwasher Frid
 
 1. Let's not start empty dishwashers just because we can. And let's add soap.
 2. A lady came by and suggested that we also want to turn off the AC when we leave.
-3. Since we're programming, and Rust has sequential evaluation semantics, let's not turn off the lights and lock the door before we've performed the tasks that are better performed with unimpaired vision and being able to leave.
+3. Every once in a while, the coffee machine needs some more love beyond just being turned off. It is smart enough to alert to its needs.
+4. Since we're programming, and Rust has sequential evaluation semantics, let's not turn off the lights and lock the door before we've performed the tasks that are better performed with unimpaired vision and being able to leave.
 
 ```rust
 impl Shutdown for Office {
     fn leave(&mut self) {
         self.air_condition(Off);
+
+        if !self.coffee_machine.status_ok() {
+            self.coffee_machine.do_maintenance();
+        }
         self.coffee_machine.stop();
 
         if !self.dish_washer.is_empty() &&
