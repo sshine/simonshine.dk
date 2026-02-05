@@ -12,11 +12,11 @@ serve:
 
 # Create new post in content/posts/
 post MDFILE:
-    mkdir -p content/artikler
-    hugo new content 'content/artikler/{{ MDFILE }}' || true
+    mkdir -p content/articles
+    hugo new content 'content/articles/{{ MDFILE }}' || true
 
 # Deploy to DIR on SERVER using tar/ssh/scp
-deploy SERVER='feng' DIR='/var/www/datamatik.blog':
+deploy SERVER='feng' DIR='/var/www/simonshine.dk':
     hugo
     tar cfz public.tgz public/
     scp public.tgz {{ SERVER }}:{{ DIR }}
