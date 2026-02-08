@@ -1,21 +1,17 @@
-{ pkgs ? import <nixpkgs> {} }:
-  let
-    hugo-theme = builtins.fetchTarball {
-      name = "hugo-theme-m10c";
-      url = "https://github.com/vaga/hugo-theme-m10c/archive/8295ee808a8166a7302b781895f018d9cba20157.tar.gz";
-      sha256 = "12jvbikznzqjj9vjd1hiisb5lhw4hra6f0gkq1q84s0yq7axjgaw";
-    };
-  in
-    pkgs.mkShellNoCC {
-      packages = [
-        pkgs.hugo
-        pkgs.just
-      ];
+{ pkgs ? import <nixpkgs> {}
+, theme ? pkgs.callPackage ./theme.nix {}
+}:
 
-      shellHook = ''
-        [ -f hugo.toml ] || hugo new site . --force
+pkgs.mkShellNoCC {
+  packages = [
+    pkgs.hugo
+    pkgs.just
+  ];
 
-        mkdir -p themes
-        ln -snf "${hugo-theme}" themes/default
-      '';
-    }
+  shellHook = ''
+    [ -f hugo.toml ] || hugo new site . --force
+
+    mkdir -p themes
+    ln -snf "${theme}" themes/default
+  '';
+}
