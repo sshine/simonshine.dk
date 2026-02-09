@@ -449,8 +449,11 @@ my needs.
 
 ## Summary
 
-Nix lets you vendor software for projects that don't have package managers capable of doing it, or
-projects that use multiple toolchains that can't address vendoring cross-toolchain dependencies.
+Nix lets you vendor software for projects that don't have package managers capable of doing it, e.g.
+Hugo.
+
+Projects that use multiple toolchains that can't address vendoring cross-toolchain dependencies
+benefit from Nix.
 
 Once configured, vendoring with Nix lets you skip some git complexity.
 
