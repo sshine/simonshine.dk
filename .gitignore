@@ -6,6 +6,8 @@ public.tgz
 .hugo_build.lock
 .direnv/
 resources/
+result
+public-result
 
 # Theme is vendored via Nix, don't commit
-themes/default
+themes/

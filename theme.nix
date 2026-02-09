@@ -1,14 +1,14 @@
-{ pkgs ? import <nixpkgs> {} }:
+{ lib, pkgs ? import <nixpkgs> {} }:
 
 pkgs.stdenv.mkDerivation {
   pname = "hugo-theme-m10c";
   version = "8295ee8";
 
   src = pkgs.fetchFromGitHub {
-    owner = "vaga";
+    owner = "sshine";
     repo = "hugo-theme-m10c";
-    rev = "8295ee808a8166a7302b781895f018d9cba20157";
-    sha256 = "12jvbikznzqjj9vjd1hiisb5lhw4hra6f0gkq1q84s0yq7axjgaw";
+    rev = "feat/hovering-heading-anchor-links";
+    sha256 = "BFwCbYj9K2k6UwYzmnX4sfZ9NjzOdfjUMdesOwdlUn8=";
   };
 
   installPhase = ''

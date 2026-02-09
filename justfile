@@ -15,9 +15,17 @@ post MDFILE:
     mkdir -p content/articles
     hugo new content 'content/articles/{{ MDFILE }}' || true
 
-# Deploy to DIR on SERVER using tar/ssh/scp
-deploy SERVER='feng' DIR='/var/www/simonshine.dk':
-    hugo
-    tar cfz public.tgz public/
-    scp public.tgz {{ SERVER }}:{{ DIR }}
-    ssh {{ SERVER }} 'cd {{ DIR }} && tar xfz public.tgz'
+# Build the Hugo site using default.nix
+build-nix:
+    nix build .# --out-link public-result
+
+# Build the Hugo site using shell.nix
+build-dev:
+    hugo --minify --theme m10c-dev
+
+# Deploy DIR to REMOTE_DIR on SERVER using tar/ssh/scp
+deploy DIR='public/' SERVER='feng' REMOTE_DIR='/var/www/simonshine.dk':
+    just build-dev
+    tar cfz public.tgz {{ DIR }}
+    scp public.tgz {{ SERVER }}:{{ REMOTE_DIR }}
+    ssh {{ SERVER }} 'cd {{ REMOTE_DIR }} && tar xfz public.tgz'
