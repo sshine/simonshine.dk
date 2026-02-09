@@ -1,5 +1,7 @@
-# datamatik.blog
+# simonshine.dk
 
-Du kan læse selve bloggen her: https://datamatik.blog
+You can read the blog here: https://simonshine.dk
 
-Du kan læse om hvordan jeg har bygget siden her: https://nix.tools/articles/hugo-static-site-setup/
+You can read about how I created this blog here:
+- https://simonshine.dk/articles/hugo-static-site-setup/
+- https://simonshine.dk/articles/vendoring-hugo-themes-with-nix-and-git/

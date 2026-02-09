@@ -1,8 +1,9 @@
----
-title: "Setting up a Hugo static website with Nix"
-date: 2025-02-24
-draft: false
----
++++
+date = 2025-02-24
+draft = false
+title = "Setting up a Hugo static website with Nix"
+tags = ['nix', 'hugo']
++++
 
 ## tl;dr
 

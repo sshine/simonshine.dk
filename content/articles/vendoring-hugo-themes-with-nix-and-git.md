@@ -2,6 +2,7 @@
 date = '2026-02-07T13:44:17+01:00'
 draft = false
 title = 'Vendoring Hugo themes with Nix and Git'
+tags = ['nix', 'hugo']
 +++
 
 ## tl;dr:
