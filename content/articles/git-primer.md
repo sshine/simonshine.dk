@@ -23,6 +23,9 @@ Here's a list of more useful low-risk, high-yield commands you should know about
 - [`git commit -v`](#git-commit--v)
 - [`git push --force-with-lease`](#git-push---force-with-lease)
 - [`git rebase / git pull --rebase`](#git-rebase--git-pull---rebase)
+- [`git rebase -i`](#git-rebase--i)
+- [`git commit --fixup`](#git-commit---fixup)
+- [`git rebase -i --autosquash`](#git-rebase--i---autosquash)
 
 ---
 
