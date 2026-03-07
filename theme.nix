@@ -7,8 +7,8 @@ pkgs.stdenv.mkDerivation {
   src = pkgs.fetchFromGitHub {
     owner = "sshine";
     repo = "hugo-theme-m10c";
-    rev = "feat/hovering-heading-anchor-links";
-    sha256 = "BFwCbYj9K2k6UwYzmnX4sfZ9NjzOdfjUMdesOwdlUn8=";
+    rev = "forked-dev";
+    sha256 = "sha256-V8M3mD+wOFm5pnp6ALLBI4Ank8HSSdvr6Cut3jXdZPQ=";
   };
 
   installPhase = ''
