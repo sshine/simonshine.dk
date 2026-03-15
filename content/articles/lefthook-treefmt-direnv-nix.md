@@ -97,15 +97,20 @@ Nix-native interface. Compared to managing lefthook manually:
   dependencies are pinned through your flake inputs. Every developer gets the
   same versions.
 
-## A minimal flake.nix
+## A minimal flake.nix with flake-parts
 
-Here's a complete, self-contained `flake.nix` that sets up lefthook with treefmt
-as a pre-commit hook:
+Here's a complete, self-contained `flake.nix` using [flake-parts][flake-parts] that sets up lefthook
+with treefmt as a pre-commit hook. Using flake-parts from the start makes it easier to split your
+configuration into modules later as your project grows:
+
+[flake-parts]: https://flake.parts/
 
 ```nix
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+
+    flake-parts.url = "github:hercules-ci/flake-parts";
 
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
@@ -114,55 +119,60 @@ as a pre-commit hook:
     lefthook-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs =
-    { self, nixpkgs, treefmt-nix, lefthook-nix, ... }:
-    let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
-      lib = pkgs.lib;
+  outputs = inputs @ { flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
 
-      # Configure formatters (nixfmt, black, rustfmt, etc).
-      # treefmt orchestrates formatters for any language from one config.
-      treefmt = treefmt-nix.lib.evalModule pkgs {
-        projectRootFile = "flake.nix";
-        programs.nixfmt.enable = true;
-      };
+      imports = [
+        inputs.treefmt-nix.flakeModule
+      ];
 
-      lefthook = lefthook-nix.lib.${system}.run {
-        src = self;
-        config = {
-          pre-commit.commands.treefmt = {
-            # {staged_files} placeholder replaced by lefthook at commit time.
-            # --fail-on-change: exit non-zero if formatting needed (blocks commit).
-            #   Without this, treefmt reformats and exits 0, committing unformatted code.
-            # --no-cache: check staged files fresh, don't trust cache.
-            run = "treefmt --fail-on-change --no-cache {staged_files}";
+      perSystem = { config, pkgs, lib, system, ... }:
+        let
+          # Configure lefthook with treefmt pre-commit hook
+          lefthook = inputs.lefthook-nix.lib.${system}.run {
+            src = inputs.self;
+            config = {
+              pre-commit.commands.treefmt = {
+                # {staged_files} placeholder replaced by lefthook at commit time.
+                # --fail-on-change: exit non-zero if formatting needed (blocks commit).
+                #   Without this, treefmt reformats and exits 0, committing unformatted code.
+                # --no-cache: check staged files fresh, don't trust cache.
+                run = "treefmt --fail-on-change --no-cache {staged_files}";
+              };
+            };
+          };
+        in
+        {
+          # Configure formatters (nixfmt, black, rustfmt, etc).
+          # treefmt orchestrates formatters for any language from one config.
+          treefmt = {
+            projectRootFile = "flake.nix";
+            programs.nixfmt.enable = true;
+          };
+
+          formatter = config.treefmt.build.wrapper;
+
+          checks = {
+            formatting = config.treefmt.build.check inputs.self;
+            hooks = lefthook;
+          };
+
+          devShells.default = pkgs.mkShell {
+            inherit (lefthook) shellHook;
+            packages = [ config.treefmt.build.wrapper ];
+
+            # Wrap lefthook with TERM=dumb to prevent terminal escape sequence probing.
+            # Demonstrates Nix's strength: trivial to create modified tool versions.
+            # Inline wrapper, no forking packages, no fragile shell aliases.
+            # Versioned with your flake, identical for all devs and CI.
+            LEFTHOOK_BIN = toString (
+              pkgs.writeShellScript "lefthook-dumb-term" ''
+                exec env TERM=dumb ${lib.getExe pkgs.lefthook} "$@"
+              ''
+            );
           };
         };
-      };
-    in
-    {
-      formatter.${system} = treefmt.config.build.wrapper;
-
-      checks.${system} = {
-        formatting = treefmt.config.build.check self;
-        hooks = lefthook;
-      };
-
-      devShells.${system}.default = pkgs.mkShell {
-        inherit (lefthook) shellHook;
-        packages = [ treefmt.config.build.wrapper ];
-
-        # Wrap lefthook with TERM=dumb to prevent terminal escape sequence probing.
-        # Demonstrates Nix's strength: trivial to create modified tool versions.
-        # Inline wrapper, no forking packages, no fragile shell aliases.
-        # Versioned with your flake, identical for all devs and CI.
-        LEFTHOOK_BIN = toString (
-          pkgs.writeShellScript "lefthook-dumb-term" ''
-            exec env TERM=dumb ${lib.getExe pkgs.lefthook} "$@"
-          ''
-        );
-      };
     };
 }
 ```
@@ -196,11 +206,6 @@ One gotcha: the `lefthook.yml` and git hooks are generated when you enter the de
 change the hook config in `flake.nix`, you need to run `direnv reload` to regenerate them. This is
 easy to forget.
 
-Using `treefmt` from PATH (rather than hardcoding a nix store path with `lib.getExe`) reduces this
-problem. Changes to treefmt flags still require a reload, but changing which formatters are enabled
-in your treefmt config doesn't -- the `treefmt` wrapper on PATH already points to the current
-config.
-
 If you use direnv, you can add `watch_file` to your `.envrc` to auto-reload when relevant files
 change:
 
@@ -211,10 +216,9 @@ use flake
 
 For larger projects, this gets noisy -- every change to `flake.nix` triggers a reload, even if it's
 unrelated to the devshell. A better approach is to split your flake into separate modules using
-[flake-parts][flake-parts] and [the dendritic pattern][dendritic] This lets you `watch_file` only
-the specific module files that affect your devshell:
+flake-parts and [the dendritic pattern][dendritic]. This lets you `watch_file` only the specific
+module files that affect your devshell:
 
-[flake-parts]: https://terranix.org/getting-started.html
 [dendritic]: /articles/dendritic-nix-with-nixos-shell
 
 ```

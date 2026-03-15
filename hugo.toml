@@ -9,8 +9,10 @@ tag = "tags"
 [pagination]
 pagerSize = 500
 
-[renderer]
-unsafe = true
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
 
 # m10c parameters
 

@@ -147,6 +147,8 @@ NixOS Wiki. Sadly, [the nixos-anywhere page][nixos-anywhere-wiki] doesn't contai
 I'm reminded that my intent to improve the wikis stalled a long time ago, drowned in politics and
 having to use MediaWiki markup.
 
+[nixos-anywhere-hetzner-guide]: https://wiki.nixos.org/wiki/Install_NixOS_on_Hetzner_Cloud#nixos-anywhere
+
 It consists of four parts:
 
 - flake.nix
@@ -154,7 +156,7 @@ It consists of four parts:
 - hardware-config.nix
 - disko-config.nix
 
-I copy-pasted these and initially only modified the "users" section from "eugene" to "root.
+I copy-pasted these and initially only modified the "users" section from "eugene" to "root".
 
 Additionally, as I always do, I provide a [justfile][just] to help remind me how to do this:
 
