@@ -1,7 +1,7 @@
 baseURL = 'https://simonshine.dk/'
 languageCode = 'en-us'
 title = 'Simon Shine'
-theme = 'default'
+theme = 'm10c-dev'
 
 [taxonomies]
 tag = "tags"
