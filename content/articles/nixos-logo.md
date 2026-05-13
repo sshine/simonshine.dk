@@ -104,3 +104,10 @@ boids following the logo will wrap around the screen and accidentally break form
 ![Nix boids](/img/nix-boids.png)
 
 It does kind of look like six dicks.
+
+## Rotating ASCII art by [fem.gg](https://fem.gg/)
+
+{{< rawhtml >}}
+<pre id="spinner" style="text-align: center; line-height: 1.2;"></pre>
+<script src="/js/flake.js"></script>
+{{< /rawhtml >}}
