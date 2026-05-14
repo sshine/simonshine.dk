@@ -200,6 +200,42 @@ The formatted files are left in your working tree. Stage them and commit again.
 
 CI gets the same checks for free with `nix flake check`.
 
+## Why `LEFTHOOK_BIN` and not a packaged wrapper
+
+The more natural way to ship the `TERM=dumb` wrapper would be to add it to the
+devshell's `packages` list, shadowing `pkgs.lefthook` on `PATH`:
+
+```nix
+devShells.default = pkgs.mkShell {
+  inherit (lefthook) shellHook;
+  packages = [
+    config.treefmt.build.wrapper
+
+    # Don't do this: shadows lefthook everywhere on PATH.
+    # Every interactive `lefthook ...` call would also get TERM=dumb,
+    # losing colored output when you actually want it.
+    (pkgs.writeShellScriptBin "lefthook" ''
+      exec env TERM=dumb ${lib.getExe pkgs.lefthook} "$@"
+    '')
+  ];
+};
+```
+
+This works, but it overreaches. The terminal-probing bug only bites when git
+fires the hook -- not when you run `lefthook run pre-commit` yourself or
+inspect output with `lefthook dump`. Shadowing the binary on `PATH` applies
+the workaround to every invocation, interactive or not.
+
+`LEFTHOOK_BIN` is the seam lefthook-nix exposes for exactly this case. The
+generated hook scripts prefer `$LEFTHOOK_BIN` over `which lefthook`, so
+setting it in the devshell affects only git's invocation of the hook. Direct
+`lefthook ...` calls in your shell still resolve to the unwrapped binary with
+normal TUI behavior.
+
+The rule of thumb: env var = "only when git fires the hook"; `PATH` install =
+"all the time, everywhere". When the bug is scoped to one call site, the fix
+should be too.
+
 ## Keeping hooks in sync with your config
 
 One gotcha: the `lefthook.yml` and git hooks are generated when you enter the devshell. If you
