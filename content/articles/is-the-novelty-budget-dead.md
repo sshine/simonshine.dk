@@ -59,8 +59,8 @@ developers coming from garbage-collected languages.
 
 This was a legitimate novelty budget concern: a developer who left took their hard-won mental model
 of lifetimes with them. Production Rust codebases tend to encode domain knowledge in the type system
-in ways that are dense and hard to reason about without prior exposure. Hiring was harder. Onboarding
-took longer. The risk was real.
+in ways that are dense and hard to reason about without prior exposure. Hiring is harder. Onboarding
+takes longer. I've seen examples of both.
 
 But:
 
