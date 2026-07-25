@@ -1,0 +1,20 @@
+name: Build and push image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: nixos
+    steps:
+      - uses: actions/checkout@v4
+
+      # SKOPEO_DEST_CREDS is "user:token"; PACKAGE_UPLOAD_KEY is a Forgejo PAT
+      # with write:package scope for the repo owner's registry namespace.
+      - name: Build and push site image
+        env:
+          SKOPEO_DEST_CREDS: ${{ github.repository_owner }}:${{ secrets.PACKAGE_UPLOAD_KEY }}
+        run: nix run nixpkgs#just -- push-image "${{ github.sha }}"
