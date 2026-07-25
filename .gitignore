@@ -2,6 +2,9 @@
 public/
 public.tgz
 
+# Image build artifact
+image.tar.gz
+
 # Misc.
 .hugo_build.lock
 .direnv/

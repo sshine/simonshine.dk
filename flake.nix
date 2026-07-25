@@ -20,6 +20,10 @@
             theme = theme;
             site = site;
             default = site;
+          }
+          # dockerTools only builds on Linux; CI (runs-on: nixos) pushes this.
+          // nixpkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+            image = pkgs.callPackage ./image.nix { inherit site; };
           };
         };
     };

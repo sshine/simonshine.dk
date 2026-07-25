@@ -1,6 +1,26 @@
+image_name := "git.shine.town/sshine/simonshine.dk"
+
 # See available `just` subcommands
 list:
     just --list
+
+# Build the static-site container image to image.tar.gz
+build-image:
+    nix build .#image -o image.tar.gz
+
+# Push image.tar.gz to the Forgejo registry as :latest and :TAG (SKOPEO_DEST_CREDS = "user:token" for CI)
+push-image TAG='latest': build-image
+    #!/usr/bin/env bash
+    set -euo pipefail
+    creds=()
+    if [ -n "${SKOPEO_DEST_CREDS:-}" ]; then
+      creds=(--dest-creds "$SKOPEO_DEST_CREDS")
+    fi
+    for tag in latest "{{ TAG }}"; do
+      nix run nixpkgs#skopeo -- copy --insecure-policy "${creds[@]}" \
+        docker-archive:image.tar.gz \
+        "docker://{{ image_name }}:$tag"
+    done
 
 # Create scaffolding and hugo.toml
 init:
