@@ -16,5 +16,5 @@ jobs:
       # with write:package scope for the repo owner's registry namespace.
       - name: Build and push site image
         env:
-          SKOPEO_DEST_CREDS: ${{ github.repository_owner }}:${{ secrets.PACKAGE_UPLOAD_KEY }}
+          SKOPEO_DEST_CREDS: forgejo_admin:${{ secrets.WEBSITE_PACKAGE_UPLOAD_KEY }}
         run: nix run nixpkgs#just -- push-image "${{ github.sha }}"
