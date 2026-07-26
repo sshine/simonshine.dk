@@ -1,6 +1,6 @@
 { pkgs ? import <nixpkgs> { }
 , site ? pkgs.callPackage ./default.nix { }
-, name ? "git.shine.town/sshine/simonshine.dk"
+, name ? "git.shine.town/sites/simonshine.dk"
 , tag ? "latest"
 }:
 

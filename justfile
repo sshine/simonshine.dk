@@ -1,4 +1,4 @@
-image_name := "git.shine.town/sshine/simonshine.dk"
+image_name := "git.shine.town/sites/simonshine.dk"
 
 # See available `just` subcommands
 list:
