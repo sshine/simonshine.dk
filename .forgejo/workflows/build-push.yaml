@@ -18,3 +18,15 @@ jobs:
         env:
           SKOPEO_DEST_CREDS: forgejo_admin:${{ secrets.WEBSITE_PACKAGE_UPLOAD_KEY }}
         run: nix run nixpkgs#just -- push-image "${{ github.sha }}"
+
+      # Keel watches :latest and would pick this up within its poll interval
+      # anyway; the webhook only removes that delay, so a failure here must not
+      # fail the build. No credentials: keel is a ClusterIP and the runner is
+      # in-cluster. The name is the repository as the Deployment spells it.
+      - name: Trigger redeploy
+        continue-on-error: true
+        run: |
+          curl -sS --fail-with-body --connect-timeout 5 --max-time 15 \
+            -X POST http://keel.keel.svc.cluster.local:9300/v1/webhooks/native \
+            -H 'Content-Type: application/json' \
+            -d '{"name":"git.shine.town/sites/simonshine.dk","tag":"latest"}'
