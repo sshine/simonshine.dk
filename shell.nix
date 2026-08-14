@@ -1,7 +1,10 @@
 { pkgs ? import <nixpkgs> {}
-, theme ? pkgs.callPackage ./theme.nix {}
+, theme ? null
 }:
 
+let
+  themeName = (builtins.fromTOML (builtins.readFile ./hugo.toml)).theme;
+in
 pkgs.mkShellNoCC {
   packages = [
     pkgs.hugo
@@ -11,7 +14,9 @@ pkgs.mkShellNoCC {
   shellHook = ''
     [ -f hugo.toml ] || hugo new site . --force
 
-    mkdir -p themes
-    ln -snf "${theme}" themes/default
+    ${pkgs.lib.optionalString (theme != null) ''
+      mkdir -p themes
+      ln -snf "${theme}" themes/${themeName}
+    ''}
   '';
 }
