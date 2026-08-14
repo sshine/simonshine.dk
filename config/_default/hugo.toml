@@ -79,3 +79,8 @@ pagerSize = 500
   icon = "brand-stackoverflow"
   name = "StackOverflow"
   url = "https://stackoverflow.com/users/235908/sshine"
+
+[[params.social]]
+  icon = "rss"
+  name = "RSS"
+  url = "/index.xml"
