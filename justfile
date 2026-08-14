@@ -41,13 +41,13 @@ build-nix:
 
 # Build the Hugo site using shell.nix with random color scheme
 # Color schemes defined in config/{green,cyan,purple,red,orange,blue,yellow}/params.toml
-# To test a specific color: hugo --theme m10c-dev --environment <color>
+# To test a specific color: hugo --environment <color>
 build-dev:
     #!/usr/bin/env bash
     COLORS=(green cyan purple red orange blue yellow)
     RANDOM_COLOR=${COLORS[$RANDOM % ${#COLORS[@]}]}
     echo "Building with $RANDOM_COLOR color scheme"
-    hugo --minify --theme m10c-dev --environment $RANDOM_COLOR
+    hugo --minify --environment $RANDOM_COLOR
 
 # Deploy DIR to REMOTE_DIR on SERVER using tar/ssh/scp
 deploy DIR='public/' SERVER='feng' REMOTE_DIR='/var/www/simonshine.dk':
