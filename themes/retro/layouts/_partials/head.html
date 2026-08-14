@@ -1,0 +1,17 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{{ with .Title }}{{ . }} &middot; {{ end }}{{ site.Title }}</title>
+<link rel="shortcut icon" href="{{ site.Params.favicon | default "/favicon.ico" }}" />
+{{ hugo.Generator }}
+<meta name="author" content="{{ site.Params.author }}" />
+<meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ with .Summary }}{{ . | plainify | truncate 160 }}{{ else }}{{ site.Params.description }}{{ end }}{{ end }}" />
+
+{{ with .OutputFormats.Get "rss" -}}
+  {{ printf `<link rel=%q type=%q href=%q title=%q>` .Rel .MediaType.Type .Permalink site.Title | safeHTML }}
+{{- end }}
+
+{{ $css := slice (resources.Get "css/retro.css") (resources.Get "css/chroma.css") | resources.Concat "css/retro.css" | resources.Minify | resources.Fingerprint -}}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" />
+
+{{ template "_internal/opengraph.html" . }}
+{{ template "_internal/twitter_cards.html" . }}

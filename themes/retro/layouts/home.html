@@ -1,0 +1,7 @@
+{{ define "main" }}
+  <img class="portrait" src="/img/sshine-thumb.png" alt="{{ site.Params.author }}" />
+  {{ with .Content }}<div class="prose">{{ . }}</div>{{ end }}
+  {{ $pages := where .RegularPagesRecursive "Type" "!=" "page" }}
+  {{ partial "post-list.html" (.Paginate $pages).Pages }}
+  {{ partial "pagination.html" . }}
+{{ end }}

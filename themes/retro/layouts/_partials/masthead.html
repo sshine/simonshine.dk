@@ -1,0 +1,11 @@
+<div class="masthead">
+  {{- with site.Menus.main }}
+    <nav class="nav">
+      [ {{ range $i, $item := . }}
+        {{- if $i }}<span class="sep">&middot;</span>{{ end -}}
+        <a href="{{ $item.URL }}"{{ if $.IsMenuCurrent "main" $item }} aria-current="page"{{ end }}>{{ $item.Name }}</a>
+      {{- end }}
+      ]
+    </nav>
+  {{- end }}
+</div>

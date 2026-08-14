@@ -1,0 +1,12 @@
+name = "retro"
+license = "MIT"
+description = "An almost unstyled page on a sheet of paper"
+min_version = "0.146.0"
+
+[markup.highlight]
+noClasses = false
+style = "friendly"
+
+[author]
+  name = "Simon Shine"
+  homepage = "https://simonshine.dk"

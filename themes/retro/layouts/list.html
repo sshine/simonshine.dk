@@ -1,0 +1,6 @@
+{{ define "main" }}
+  <h1>{{ .Title }}</h1>
+  {{ with .Content }}<div class="prose">{{ . }}</div>{{ end }}
+  {{ partial "post-list.html" (.Paginate .Pages).Pages }}
+  {{ partial "pagination.html" . }}
+{{ end }}

@@ -12,5 +12,6 @@ resources/
 result
 public-result
 
-# Theme is vendored via Nix, don't commit
-themes/
+# Themes are vendored via Nix, don't commit; retro lives in-repo
+themes/*
+!themes/retro/

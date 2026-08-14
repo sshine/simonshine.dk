@@ -1,0 +1,293 @@
+:root {
+  --sheet: 960px;
+  --measure: 74ch;
+
+  --paper: #fff;
+  --desk: #e8e6e0;
+  --ink: #000;
+  --faded: #555;
+  --rule: #000;
+  --hairline: #999;
+  --link: #0000cc;
+  --link-hover: #cc0000;
+}
+
+html {
+  font-size: 150%;
+}
+
+body {
+  margin: 0;
+  background: var(--desk);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.5;
+}
+
+a {
+  color: var(--link);
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+.portrait {
+  float: right;
+  margin: 3.23em 0 1em 1.6em;
+  width: 11em;
+  height: 11em;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 0 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.sheet {
+  width: 100%;
+  max-width: var(--sheet);
+  background: var(--paper);
+  box-shadow: 0 1px 0 #c9c6bd;
+}
+
+.masthead {
+  border-bottom: 3px solid var(--desk);
+  padding: 0.6em 1.9em;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8em;
+}
+
+.nav a[aria-current="page"] {
+  font-weight: 700;
+}
+
+.sep {
+  color: var(--hairline);
+}
+
+.nav .sep {
+  margin: 0 0.4em;
+}
+
+.body {
+  display: block;
+  padding: 1.6em 2.4em 2.8em;
+}
+
+.colophon {
+  border-top: 3px solid var(--desk);
+  padding: 0.6em 1.9em;
+  font-size: 0.85em;
+  color: var(--faded);
+}
+
+.colophon .sep {
+  margin: 0 0.4em;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 1.6em 0 0.55em;
+}
+
+.body > :first-child > :first-child,
+.body > h1:first-child,
+.body > .portrait + .prose > :first-child,
+.body > .portrait + article > :first-child > :first-child {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 1.9em;
+}
+
+h2 {
+  font-size: 1.4em;
+}
+
+h3 {
+  font-size: 1.15em;
+}
+
+.heading-anchor {
+  text-decoration: none;
+  opacity: 0;
+  padding-left: 0.3em;
+}
+
+h1:hover .heading-anchor,
+h2:hover .heading-anchor,
+h3:hover .heading-anchor,
+h4:hover .heading-anchor,
+.heading-anchor:focus {
+  opacity: 1;
+}
+
+.prose p,
+.prose li,
+.prose blockquote {
+  max-width: var(--measure);
+}
+
+.prose p {
+  margin: 0 0 1em;
+  text-wrap: pretty;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+
+.prose li {
+  margin-bottom: 0.3em;
+}
+
+.prose blockquote {
+  margin: 0 0 1em;
+  padding-left: 1em;
+  border-left: 3px solid var(--hairline);
+  color: var(--faded);
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 1.3em 0;
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+
+.prose iframe {
+  max-width: 100%;
+}
+
+.post-meta {
+  font-size: 0.85em;
+  color: var(--faded);
+  margin-bottom: 1.6em;
+}
+
+.post-meta .tag {
+  margin-right: 0.4em;
+}
+
+pre {
+  font-size: 0.85em;
+  line-height: 1.45;
+  padding: 0.8em 1em;
+  border: 1px solid #c9c6bd;
+  background: var(--desk);
+  overflow-x: auto;
+}
+
+code {
+  font-family: "DejaVu Sans Mono", Menlo, Consolas, monospace;
+}
+
+:not(pre) > code {
+  font-size: 0.88em;
+  background: #f2f0ec;
+  padding: 0.1em 0.3em;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1em;
+}
+
+.prose th,
+.prose td {
+  border-bottom: 1px solid #ddd;
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+
+.posts-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.posts-list-item,
+.prose .posts-list-item {
+  max-width: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.3em 1.2em;
+  padding: 0.4em 0;
+  border-bottom: 1px dotted var(--hairline);
+}
+
+.posts-list-item-description {
+  white-space: nowrap;
+  font-size: 0.85em;
+  color: #444;
+}
+
+.posts-list-item-description .icon {
+  display: none;
+}
+
+.terms-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.terms-list li {
+  padding: 0.3em 0;
+  border-bottom: 1px dotted var(--hairline);
+}
+
+.pagination {
+  margin-top: 1.6em;
+  font-size: 0.9em;
+}
+
+.pagination a,
+.pagination .current {
+  margin-right: 0.4em;
+}
+
+.pagination .current {
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 0 3px;
+  }
+
+  .masthead,
+  .colophon {
+    padding: 0.6em 3px;
+  }
+
+  .body {
+    padding: 1.2em 3px 2em;
+  }
+}

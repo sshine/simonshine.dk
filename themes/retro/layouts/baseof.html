@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="{{ site.Language.Locale | default "en-us" }}">
+  <head>
+    {{ partial "head.html" . }}
+  </head>
+  <body>
+    <div class="page">
+      <div class="sheet">
+        {{ partial "masthead.html" . }}
+        <main class="body">
+          {{ block "main" . }}{{ .Content }}{{ end }}
+        </main>
+        {{ partial "colophon.html" . }}
+      </div>
+    </div>
+  </body>
+</html>

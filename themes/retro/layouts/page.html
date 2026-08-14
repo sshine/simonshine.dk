@@ -1,0 +1,24 @@
+{{ define "main" }}
+  {{ with .Params.portrait }}<img class="portrait" src="/img/sshine-thumb.png" alt="{{ site.Params.author }}" />{{ end }}
+  <article>
+    {{ with .Title }}<h1>{{ . }}</h1>{{ end }}
+
+    {{- if ne .Type "page" }}
+      <div class="post-meta">
+        {{ .PublishDate.Format "Jan 2, 2006" }}
+        <span class="sep">&middot;</span>
+        {{ .ReadingTime }} min read
+        {{- with .Params.tags }}
+          <span class="sep">&middot;</span>
+          {{- range . }}
+            {{- with site.GetPage (printf "/tags/%s" (urlize .)) }}
+              <a class="tag" href="{{ .RelPermalink }}">{{ .Title }}</a>
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      </div>
+    {{- end }}
+
+    <div class="prose">{{ .Content }}</div>
+  </article>
+{{ end }}
