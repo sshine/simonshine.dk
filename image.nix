@@ -39,6 +39,8 @@ let
         root ${site};
         index index.html;
 
+        absolute_redirect off;
+
         location = /healthz {
           return 200 "ok\n";
           add_header Content-Type text/plain;
