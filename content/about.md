@@ -8,7 +8,7 @@ I'm Simon.
 
 I'm a computer programmer from Copenhagen, Denmark. I grew up on the island of Amager, and that's
 where I still live. I have been coding since 1997, and I studied Computer Science at [DIKU][diku]
-on-off in the period 2008-2017. I have been absolutely fascinated by programming, terminal systems
+in the period 2008-2017. I have been absolutely fascinated by programming, terminal systems
 and computer networks ever since.
 
 [diku]: https://di.ku.dk
@@ -19,13 +19,14 @@ when my 56k modem was connected, via constantly changing IP addresses. I didn't 
 
 [gimp]: https://www.gimp.org/
 
-This page has been around since 2004 as shine.eu.org, and since 2014 as simonshine.dk. I believed
-then that having a .eu.org domain would insure me against losing the domain because it was free, so
-I couldn't forget to pay. But when [GratisDNS was sold in 2020][gdns], I was unable to change the
-nameserver, because EU.org had stopped responding, and my contact information had changed since.
-Turns out free internet services don't last.
+This page has been around since 2004 as [shine.eu.org][shine-eu-org], and since 2014 as
+simonshine.dk. Its DNS was hosted at GratisDNS until [GratisDNS was sold in 2020 and absorbed into
+One.com in 2022][gdns]. Nowadays the DNS is hosted at [deSEC.io][desec-io] where I'm an active
+community member.
 
+[shine-eu-org]: https://web.archive.org/web/20040000000000*/shine.eu.org
 [gdns]: https://www.version2.dk/holdning/rip-gratisdns-tak-mange-gode-aar
+[desec-io]: https://desec.io
 
 > "In George Lucas' Star Wars trilogy, Jedi Knights were expected to make their own light
 > sabers. The message was clear: a warrior confronted by a powerful empire bent on total- itarian
