@@ -13,5 +13,8 @@
 {{ $css := slice (resources.Get "css/retro.css") (resources.Get "css/chroma.css") | resources.Concat "css/retro.css" | resources.Minify | resources.Fingerprint -}}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" />
 
+{{ $js := resources.Get "js/turtles.js" | resources.Minify | resources.Fingerprint -}}
+<script defer src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
+
 {{ template "_internal/opengraph.html" . }}
 {{ template "_internal/twitter_cards.html" . }}

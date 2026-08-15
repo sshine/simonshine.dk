@@ -3,7 +3,7 @@
   <head>
     {{ partial "head.html" . }}
   </head>
-  <body>
+  <body{{ if .Params.noTurtles }} data-no-turtles{{ end }}>
     <div class="page">
       <div class="sheet">
         {{ partial "masthead.html" . }}

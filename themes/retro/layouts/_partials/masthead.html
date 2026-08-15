@@ -8,4 +8,13 @@
       ]
     </nav>
   {{- end }}
+  {{- with site.Params.social }}
+    <nav class="nav social">
+      [ {{ range $i, $item := . }}
+        {{- if $i }}<span class="sep">&middot;</span>{{ end -}}
+        <a href="{{ $item.url }}" rel="noreferrer noopener me">{{ $item.name }}</a>
+      {{- end }}
+      ]
+    </nav>
+  {{- end }}
 </div>

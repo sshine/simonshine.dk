@@ -1,7 +1,4 @@
 <div class="colophon">
-  {{ site.Title }}
+  Made by {{ site.Params.author | default site.Title }}
   {{- with site.Lastmod }}<span class="sep">&middot;</span>Last updated {{ .Format "2 January 2006" }}{{ end }}
-  {{- with site.Params.social }}
-    {{- range . }}<span class="sep">&middot;</span><a href="{{ .url }}" rel="noreferrer noopener me">{{ .name }}</a>{{ end }}
-  {{- end }}
 </div>
