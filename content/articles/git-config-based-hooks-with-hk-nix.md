@@ -87,13 +87,13 @@ $ direnv allow
 ```
 
 Entering the devshell via `direnv allow` or `nix develop` runs `config.hk-nix.shellHook`, which
-writes the generated `hk.pkl` and installs the git hooks. Now any `git commit` runs nixfmt over your
-staged `*.nix` files; with `fix = true`, hk formats them in place, and `stash = "git"` keeps unstaged
-changes out of the way while it does. You may want to `.gitignore` the generated symlink:
+installs the git hooks. Now any `git commit` runs nixfmt over your staged `*.nix` files; with
+`fix = true`, hk formats them in place, and `stash = "git"` keeps unstaged changes out of the way
+while it does.
 
-```gitignore
-/hk.pkl
-```
+`config.hk-nix.package` is hk with the generated `hk.pkl` baked into it as `HK_FILE`, so the
+configuration lives in the Nix store next to every tool it references. Nothing is written into the
+working tree, and there is nothing to `.gitignore`.
 
 Importing `hk-nix.flakeModules.default` also sets `checks.hk`, so CI gets the same hook, read-only
 over every file, for free:
@@ -124,7 +124,7 @@ watch_file flake.nix
 use flake
 ```
 
-Editing a hook now triggers a direnv reload, which regenerates `hk.pkl` and reinstalls the hooks.
+Editing a hook now triggers a direnv reload, which regenerates the config and reinstalls the hooks.
 
 ## Built-in linters
 
