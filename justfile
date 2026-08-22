@@ -17,7 +17,7 @@ push-image TAG='latest': build-image
       creds=(--dest-creds "$SKOPEO_DEST_CREDS")
     fi
     for tag in latest "{{ TAG }}"; do
-      nix run nixpkgs#skopeo -- copy --insecure-policy "${creds[@]}" \
+      skopeo copy --insecure-policy "${creds[@]}" \
         docker-archive:image.tar.gz \
         "docker://{{ image_name }}:$tag"
     done

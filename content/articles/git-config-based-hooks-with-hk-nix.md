@@ -71,7 +71,7 @@ configuration into modules as the project grows.
           };
 
           devShells.default = pkgs.mkShell {
-            packages = [ config.hk-nix.package pkgs.git ];
+            packages = [ config.hk-nix.hk pkgs.git ];
             shellHook = config.hk-nix.shellHook;
           };
         };
@@ -91,9 +91,15 @@ installs the git hooks. Now any `git commit` runs nixfmt over your staged `*.nix
 `fix = true`, hk formats them in place, and `stash = "git"` keeps unstaged changes out of the way
 while it does.
 
-`config.hk-nix.package` is hk with the generated `hk.pkl` baked into it as `HK_FILE`, so the
+`config.hk-nix.hk` is hk with the generated `hk.pkl` baked into it as `HK_FILE`, so the
 configuration lives in the Nix store next to every tool it references. Nothing is written into the
 working tree, and there is nothing to `.gitignore`.
+
+If you apply the `hk-nix.overlays.default` overlay, you can also produced this "pre-baked" `hk` via:
+
+```nix
+pkgs.hk.withConfig config.hk-nix.configFile
+```
 
 Importing `hk-nix.flakeModules.default` also sets `checks.hk`, so CI gets the same hook, read-only
 over every file, for free:
@@ -151,7 +157,7 @@ perSystem =
   };
 ```
 
-*(So far, [123 out of 143 hooks](https://github.com/nix-tools/hk-nix/issues/1) are vendored via Nixpkgs.)*
+*(So far, [123 out of 142 hooks](https://github.com/nix-tools/hk-nix/issues/1) are vendored via Nixpkgs.)*
 
 A builtin identifies the tool; hk-nix pins it from Nixpkgs and injects it into the step's `PATH` by
 absolute store path. Two independent knobs adjust that: `.override` repins the tool, and every key
@@ -254,4 +260,24 @@ individual hook can be turned off without deleting its configuration:
 For hk-nix this matters because installation writes hk's entry into `.git/config` rather than
 dropping scripts into `.git/hooks`, leaving that directory untouched. hk-nix always installs the
 config-based way (it never passes `--legacy`), and prepends a recent git to `PATH` so the
-config-based path is actually taken.
+config-based path is actually taken. It also passes `--force-local`, so hooks installed once with
+`hk install --global` do not stop it from managing this repository's hooks.
+
+hk-nix then rewrites the command it just installed, replacing the bare `hk` with an absolute
+`/nix/store` path:
+
+```gitconfig
+[hook "hk-pre-commit"]
+	event = pre-commit
+	command = test "${HK:-1}" = "0" || /nix/store/...-hk-hk-nix/bin/hk run pre-commit --from-hook
+```
+
+This way, the hook depends on nothing being on `PATH`. Committing from an editor or a GUI client
+started outside direnv runs the same hooks as committing from the devshell.
+
+Alternatively, hk might fail quietly because it treats a repository with no discoverable
+configuration as one that does not use hk: `hk run pre-commit --from-hook` exits 0 and doesn't print
+anything, when there is no hk.pkl and no `HK_FILE`.
+
+Garbage-collecting that store path may break the hook until you re-enter the devshell, which
+rewrites it. `HK=0` still bypasses everything
