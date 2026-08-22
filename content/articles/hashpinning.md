@@ -77,6 +77,19 @@ The default allowlist is `actions/*`, on the theory that GitHub owning your CI i
 `--no-allow` empties it and nothing gets a pass.
 
 ```console
+$ hashpinner --check --no-allow
+.github/workflows/ci.yml
+  FAIL    L9  actions/checkout  v4
+           × not pinned to a commit
+  FAIL   L10  cachix/install-nix-action  v27
+           × not pinned to a commit
+  FAIL   L11  DeterminateSystems/magic-nix-cache-action  v8
+           × not pinned to a commit
+```
+
+Pinning them is the same command with `--pin`:
+
+```console
 $ hashpinner --pin
 .github/workflows/ci.yml
     ok    L9  actions/checkout  v4
