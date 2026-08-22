@@ -17,7 +17,7 @@ jobs:
       - name: Build and push site image
         env:
           SKOPEO_DEST_CREDS: forgejo_admin:${{ secrets.WEBSITE_PACKAGE_UPLOAD_KEY }}
-        run: nix run nixpkgs#just -- push-image "${{ github.sha }}"
+        run: just push-image "${{ github.sha }}"
 
       # Keel watches :latest and would pick this up within its poll interval
       # anyway; the webhook only removes that delay, so a failure here must not
