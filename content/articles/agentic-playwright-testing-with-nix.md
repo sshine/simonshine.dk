@@ -2,7 +2,7 @@
 date = '2026-08-15T21:31:07+02:00'
 draft = false
 title = 'Agentic Playwright testing with Nix'
-tags = ['nix', 'rust']
+tags = ['nix', 'rust', 'agentic']
 +++
 
 I don't do much front-end web development these days, but I enable people who do.
