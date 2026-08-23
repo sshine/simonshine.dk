@@ -68,7 +68,7 @@ pagerSize = 500
 [[params.social]]
   icon = "brand-nixos"
   name = "nix.tools"
-  url = "https://discourse.nixos.org/u/sshine/summary"
+  url = "https://nix.tools"
 
 [[params.social]]
   icon = "brand-linkedin"
