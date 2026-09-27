@@ -140,6 +140,10 @@ h4:hover .heading-anchor,
   opacity: 1;
 }
 
+.prose {
+  overflow-wrap: break-word;
+}
+
 .prose p,
 .prose li,
 .prose blockquote {
@@ -317,6 +321,11 @@ table {
 }
 
 @media (max-width: 600px) {
+  /* 150% of a phone's 16px leaves about 30 characters per line. */
+  html {
+    font-size: 112.5%;
+  }
+
   .page {
     padding: 0 3px;
   }
@@ -328,5 +337,16 @@ table {
 
   .body {
     padding: 1.2em 3px 2em;
+  }
+
+  .portrait {
+    width: 7em;
+    height: 7em;
+    margin: 0.3em 0 0.6em 1em;
+  }
+
+  .prose table {
+    display: block;
+    overflow-x: auto;
   }
 }
