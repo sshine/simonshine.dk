@@ -1,19 +1,24 @@
+{{- /* The spaces around the separators are break opportunities: without them the
+       whole row is one unbreakable run and runs off the side of a phone. The
+       brackets stay welded to the outermost links so they never wrap alone. */ -}}
 <div class="masthead">
   {{- with site.Menus.main }}
     <nav class="nav">
-      [ {{ range $i, $item := . }}
-        {{- if $i }}<span class="sep">&middot;</span>{{ end -}}
+      [
+      {{- range $i, $item := . }}
+        {{- if $i }} <span class="sep">&middot;</span> {{ end -}}
         <a href="{{ $item.URL }}"{{ if $.IsMenuCurrent "main" $item }} aria-current="page"{{ end }}>{{ $item.Name }}</a>
-      {{- end }}
+      {{- end -}}
       ]
     </nav>
   {{- end }}
   {{- with site.Params.social }}
     <nav class="nav social">
-      [ {{ range $i, $item := . }}
-        {{- if $i }}<span class="sep">&middot;</span>{{ end -}}
+      [
+      {{- range $i, $item := . }}
+        {{- if $i }} <span class="sep">&middot;</span> {{ end -}}
         <a href="{{ $item.url }}" rel="noreferrer noopener me">{{ $item.name }}</a>
-      {{- end }}
+      {{- end -}}
       ]
     </nav>
   {{- end }}

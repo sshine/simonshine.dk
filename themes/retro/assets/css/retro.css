@@ -55,12 +55,14 @@ a:hover {
   box-shadow: 0 1px 0 #c9c6bd;
 }
 
+/* Centring the navs with align-items would size them to max-content and let them
+   run off the side of a phone; text-align centres them just as well and leaves
+   them full width, so they wrap. */
 .masthead {
   border-bottom: 3px solid var(--desk);
   padding: 0.6em 1.9em;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 0.2em;
   text-align: center;
 }
@@ -73,8 +75,10 @@ a:hover {
   color: var(--hairline);
 }
 
+/* The template already puts a real space on either side, so this only tops the
+   gap up to the 0.4em the colophon uses. */
 .nav .sep {
-  margin: 0 0.4em;
+  margin: 0 0.15em;
 }
 
 .body {
