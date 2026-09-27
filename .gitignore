@@ -5,6 +5,9 @@ public.tgz
 # Image build artifact
 image.tar.gz
 
+# Screenshots from `just shots`
+shots/
+
 # Misc.
 .hugo_build.lock
 .direnv/
