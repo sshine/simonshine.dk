@@ -1,7 +1,7 @@
 +++
 date = '2026-07-05T22:51:02+02:00'
 draft = false
-title = 'Using sops-nix templates to support passwords in legacy configs'
+title = 'sops-nix templates for passwords in legacy configs'
 tags = ['nix']
 +++
 

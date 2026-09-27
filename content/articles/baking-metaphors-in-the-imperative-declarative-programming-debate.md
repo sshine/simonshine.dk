@@ -1,7 +1,7 @@
 +++
 date = '2021-09-17T16:33:16+01:00'
 draft = false
-title = 'Baking metaphors in the imperative/declarative programming debate'
+title = 'Baking metaphors in the imperative/declarative debate'
 +++
 
 tl;dr:

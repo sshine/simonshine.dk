@@ -1,7 +1,7 @@
 +++
 date = '2021-07-10T16:34:07+01:00'
 draft = false
-title = 'Extracting the KUBECONFIG for a DigitalOcean Kubernetes cluster from a Terraform .tfstate'
+title = 'Extracting a DigitalOcean kubeconfig from Terraform'
 tags = ['jq', 'terraform', 'kubernetes']
 +++
 

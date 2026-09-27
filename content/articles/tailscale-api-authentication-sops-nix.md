@@ -1,7 +1,7 @@
 +++
 date = '2026-07-05T21:01:12+02:00'
 draft = false
-title = 'Authenticating Tailscale non-interactively via API with sops-nix'
+title = 'Non-interactive Tailscale API login with sops-nix'
 tags = ['nix', 'tailscale']
 +++
 

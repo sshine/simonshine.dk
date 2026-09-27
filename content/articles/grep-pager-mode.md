@@ -1,7 +1,7 @@
 +++
 date = '2020-09-28T16:35:50+01:00'
 draft = false
-title = "What if, when you grep, it goes into pager mode when results don't fit one screen?"
+title = "Grep that pages only when results don't fit one screen"
 +++
 
 There is a general theme in GNU shell commands that if a program is able to deliver ANSI-colored output, it only does so in interactive shells, or if explicitly instructed. If you want to pipe output but have colors remain for later printing, you sometimes have to augment both the sending and the receiving command.
