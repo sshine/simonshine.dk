@@ -272,6 +272,18 @@ table {
   border-bottom: 1px dotted var(--hairline);
 }
 
+/* 960px of sheet plus the .page padding either side; below that the longer
+   titles stop fitting beside their date, and space-between then right-aligns the
+   date on some rows while dropping it under the title on others. Stacking every
+   row keeps the column straight. */
+@media (max-width: 1008px) {
+  .posts-list-item,
+  .prose .posts-list-item {
+    flex-direction: column;
+    gap: 0.1em;
+  }
+}
+
 .pagination {
   margin-top: 1.6em;
   font-size: 0.9em;
