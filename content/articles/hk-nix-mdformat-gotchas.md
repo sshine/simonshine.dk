@@ -101,20 +101,22 @@ A fix is to stop comparing raw generator output, and pipe one generator into the
 
 ```nix
 # nix/hooks.nix
-# cargo-readme emits markdown that mdformat then rewrites (link reference
-# definitions move to the end of the file), so the raw output never equals the
-# committed README.md and the two hooks would undo each other forever.
-mdformat = config.treefmt.settings.formatter.mdformat.command;
-readme = "${cargo-readme} ${readmeArgs} | ${mdformat} -";
-```
+let
+  # --input is required because the crate has a lib target: cargo-readme would otherwise read lib.rs.
+  readmeArgs = "--project-root crates/hashpinner --input src/main.rs --template ../../README.tpl";
 
-TODO: readmeArgs above isn't listed in the code above, while it's part of the solution. And the `readme` below overlaps with the one above. They're listed in the justfile as `readme_args`, not sure if there's an overlap or I'm repeating myself. If I'm repeating myself, don't bother DRY'ing them or even mentioning the DRY.
-
-```nix
-readme = {
-  check = "${readme} | diff - README.md";
-  fix = "${readme} > README.md";
-};
+  # Called by store path rather than via `cargo readme`, so the cargo-subcommand argv
+  # has to be supplied with 'readme' by hand: without it clap only prints its usage.
+  cargo-readme = "${lib.getExe' pkgs.cargo-readme "cargo-readme"} readme";
+  mdformat = config.treefmt.settings.formatter.mdformat.command;
+  readme = "${cargo-readme} ${readmeArgs} | ${mdformat} -";
+in
+{
+  hk-nix.settings.hooks."pre-push".steps.readme = {
+    check = "${readme} | diff - README.md";
+    fix = "${readme} > README.md";
+  };
+}
 ```
 
 `config.treefmt.settings.formatter.mdformat.command` is the binary treefmt-nix already built for the
