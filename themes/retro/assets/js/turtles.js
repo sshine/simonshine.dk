@@ -3,18 +3,20 @@
 (function () {
   "use strict";
 
-  var FLAKES = 3; // drawn once, then left alone
+  var FLAKES = 6; // drawn once, then left alone
   var WORKERS_MAX = 3; // arms of one flake drawn at once; must divide 6
   var SPEED = 220; // px of path per second
   var SPEED_JITTER = 0.35; // per worker, so a crew finishes raggedly
   var PEN_UP_MULT = 3; // pen-up travel is faster, so the turtle visibly hops
   var MIN_RADIUS = 30; // px, enclosing circle of a flake
   var MAX_RADIUS = 190;
-  var SIZE_BIAS = 2; // >1 favours small flakes, so a big one is an event
+  var SIZE_SHARE = 0.75; // target radius, as a share of an even split of the gutters
+  var SIZE_BACKOFF = 0.97; // per rejected placement, so a crowded gutter still fills
+  var SIZE_JITTER = 0.15; // shrink only, so a set varies without outgrowing its share
   var GAP_MIN = 0.1; // gap/long; below ~0.09 the lambdas run into each other
   var GAP_MAX = 0.18;
   var MARGIN = 10; // px clearance from the sheet and the window edge
-  var SPAWN_TRIES = 12;
+  var SPAWN_TRIES = 60; // enough rejections for the backoff to find room
   var HEAD_DOT = true;
   var HEAD_R = 1.8;
 
@@ -164,13 +166,21 @@
     var regions = gutters();
     if (!regions.length) return null;
 
+    /* Flakes are drawn big: the target size is what an even share of the
+       gutter area affords, which is as large as a full set can be without
+       crowding itself out. */
+    var area = 0;
+    for (var i = 0; i < regions.length; i++) area += regions[i].w * regions[i].h;
+    var budget = SIZE_SHARE * Math.sqrt(area / (FLAKES * Math.PI));
+
     for (var attempt = 0; attempt < SPAWN_TRIES; attempt++) {
       var reg = pickRegion(regions);
       var fit = Math.min(reg.w, reg.h) / 2 - MARGIN;
       if (fit < MIN_RADIUS) continue;
 
       var hi = Math.min(fit, MAX_RADIUS);
-      var rad = MIN_RADIUS + (hi - MIN_RADIUS) * Math.pow(Math.random(), SIZE_BIAS);
+      var want = Math.min(hi, budget) * Math.pow(SIZE_BACKOFF, attempt);
+      var rad = Math.max(MIN_RADIUS, Math.min(hi, want * (1 - Math.random() * SIZE_JITTER)));
       var cx = reg.x + rad + MARGIN + Math.random() * (reg.w - 2 * (rad + MARGIN));
       var cy = reg.y + rad + MARGIN + Math.random() * (reg.h - 2 * (rad + MARGIN));
 
