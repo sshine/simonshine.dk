@@ -314,7 +314,8 @@ table {
 }
 
 .turtles .trail {
-  fill: none;
+  fill: var(--paper);
+  fill-opacity: 0;
   stroke: var(--paper);
   stroke-width: 1.5;
   stroke-opacity: 0.9;
@@ -324,6 +325,21 @@ table {
 
 .turtles .head {
   fill: var(--paper);
+}
+
+/* Each lambda closes on itself, so the outline the turtles leave behind is
+   already a fillable shape; the ink arrives once the crew is finished, and
+   the chalk line the turtle drew in becomes the shape's own border. */
+.turtles .filled .trail {
+  fill-opacity: 1;
+  stroke: var(--hairline);
+  transition: fill-opacity 700ms linear, stroke 700ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turtles .filled .trail {
+    transition: none;
+  }
 }
 
 @media print {

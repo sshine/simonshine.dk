@@ -3,7 +3,7 @@
 (function () {
   "use strict";
 
-  var MAX_TURTLES = 3;
+  var FLAKES = 3; // drawn once, then left alone
   var WORKERS_MAX = 3; // arms of one flake drawn at once; must divide 6
   var SPEED = 220; // px of path per second
   var SPEED_JITTER = 0.35; // per worker, so a crew finishes raggedly
@@ -15,9 +15,6 @@
   var GAP_MAX = 0.18;
   var MARGIN = 10; // px clearance from the sheet and the window edge
   var SPAWN_TRIES = 12;
-  var SPAWN_DELAY = 900; // ms before a finished flake is replaced
-  var HOLD_MS = 4000;
-  var FADE_MS = 2500;
   var HEAD_DOT = true;
   var HEAD_R = 1.8;
 
@@ -160,7 +157,6 @@
   document.body.appendChild(svg);
 
   var live = [];
-  var nextSpawn = 0;
   var raf = null;
   var last = 0;
 
@@ -231,7 +227,7 @@
 
       var t = {
         ops: flake.ops, g: g, workers: workers,
-        cx: cx, cy: cy, rad: rad, done: 0
+        cx: cx, cy: cy, rad: rad, done: false
       };
       live.push(t);
       return t;
@@ -277,51 +273,36 @@
     return t.i >= t.end;
   }
 
-  function drop(t) {
-    var i = live.indexOf(t);
-    if (i >= 0) live.splice(i, 1);
-    if (t.g.parentNode) svg.removeChild(t.g);
+  /* The outline closes on itself, so once a crew is finished the same path
+     can be flooded with ink. The class, not the attribute, so the stylesheet
+     keeps both the colour and the timing. */
+  function fill(t) {
+    t.done = true;
+    t.g.setAttribute("class", "flake filled");
   }
 
   function frame(now) {
     var dt = Math.min((now - last) / 1000, 0.05);
     last = now;
 
-    var drawing = 0;
-    for (var i = live.length - 1; i >= 0; i--) {
+    var drawing = false;
+    for (var i = 0; i < live.length; i++) {
       var t = live[i];
-      if (!t.done) {
-        drawing++;
-        var idle = true;
-        for (var k = 0; k < t.workers.length; k++) {
-          var w = t.workers[k];
-          if (w.done) continue;
-          if (step(t.ops, w, dt * w.speed)) {
-            w.done = true;
-            if (w.head) { t.g.removeChild(w.head); w.head = null; }
-          } else idle = false;
-        }
-        if (idle) t.done = now;
-      } else if (now - t.done > HOLD_MS + FADE_MS) {
-        drop(t);
-      } else if (now - t.done > HOLD_MS && t.g.style.opacity !== "0") {
-        t.g.style.transition = "opacity " + FADE_MS + "ms linear";
-        t.g.style.opacity = "0";
+      if (t.done) continue;
+      var idle = true;
+      for (var k = 0; k < t.workers.length; k++) {
+        var w = t.workers[k];
+        if (w.done) continue;
+        if (step(t.ops, w, dt * w.speed)) {
+          w.done = true;
+          if (w.head) { t.g.removeChild(w.head); w.head = null; }
+        } else idle = false;
       }
+      if (idle) fill(t);
+      else drawing = true;
     }
 
-    if (drawing < MAX_TURTLES && now >= nextSpawn) {
-      if (spawn()) nextSpawn = now + SPAWN_DELAY * (0.5 + Math.random());
-      else nextSpawn = now + SPAWN_DELAY;
-    }
-
-    raf = window.requestAnimationFrame(frame);
-  }
-
-  function start() {
-    if (raf !== null) return;
-    last = window.performance.now();
-    raf = window.requestAnimationFrame(frame);
+    raf = drawing ? window.requestAnimationFrame(frame) : null;
   }
 
   function stop() {
@@ -335,36 +316,56 @@
     while (svg.firstChild) svg.removeChild(svg.firstChild);
   }
 
-  /* Without motion, draw a still set once and leave it there. */
-  function still() {
-    clear();
-    for (var i = 0; i < MAX_TURTLES; i++) {
-      var t = spawn();
-      if (!t) continue;
-      for (var k = 0; k < t.workers.length; k++) step(t.ops, t.workers[k], Infinity);
-      t.done = 1;
+  /* Every crew sets off at once and the drawing ends when the last one is
+     done; the jittered speeds and crew sizes keep them out of lockstep. */
+  function draw() {
+    for (var i = 0; i < FLAKES; i++) spawn();
+    if (!live.length) return;
+
+    if (reduce.matches) {
+      for (var j = 0; j < live.length; j++) {
+        var t = live[j];
+        for (var k = 0; k < t.workers.length; k++) step(t.ops, t.workers[k], Infinity);
+        fill(t);
+      }
+      return;
     }
+
+    last = window.performance.now();
+    raf = window.requestAnimationFrame(frame);
+  }
+
+  /* A flake half-covered by the sheet looks broken, so the set is thrown away
+     and drawn afresh whenever the gutters change shape. Resize events that
+     leave the geometry as it was, such as a phone hiding its address bar,
+     must not disturb a finished drawing. */
+  var seen = null;
+
+  function moved() {
+    var box = sheet.getBoundingClientRect();
+    var now = [
+      document.documentElement.clientWidth,
+      document.documentElement.clientHeight,
+      box.left, box.right
+    ].join();
+    if (now === seen) return false;
+    seen = now;
+    return true;
   }
 
   function reset() {
+    moved();
     stop();
     clear();
-    if (reduce.matches) still();
-    else start();
+    draw();
   }
 
   var resizeTimer = null;
   window.addEventListener("resize", function () {
     window.clearTimeout(resizeTimer);
-    resizeTimer = window.setTimeout(reset, 150);
-  });
-
-  /* A flake half-covered by the sheet after a resize looks broken, and rAF
-     timestamps stall while hidden, so both cases restart from scratch. */
-  document.addEventListener("visibilitychange", function () {
-    if (reduce.matches) return;
-    if (document.hidden) stop();
-    else start();
+    resizeTimer = window.setTimeout(function () {
+      if (moved()) reset();
+    }, 150);
   });
 
   if (reduce.addEventListener) reduce.addEventListener("change", reset);
