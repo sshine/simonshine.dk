@@ -7,6 +7,8 @@ tags = ['nix', 'rust']
 
 Here's a git pre-commit hook for removing all comments that relies on [hk-nix][hk-nix-article].
 
+[hk-nix-article]: /articles/git-config-based-hooks-with-hk-nix/
+
 It enforces the removal of all source code comments besides certain doc comments.
 
 In Rust, comments that begin with `///` or `//!`, for example.
