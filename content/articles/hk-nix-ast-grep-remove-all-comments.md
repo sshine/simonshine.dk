@@ -212,6 +212,138 @@ Naming it so it sorts before `treefmt`, and hk runs it first and alone.
 
 `--error` exits non-zero when a rule matches.
 
+## The whole thing
+
+Here are the ast-grep configuration that enable comment stripping:
+
+```nix
+# nix/_comment-rules.nix
+{ runCommand, writeText }:
+let
+  sgconfig = writeText "sgconfig.yml" ''
+    ruleDirs:
+      - rules
+  '';
+
+  rust = writeText "rust.yml" ''
+    id: rust-comment
+    language: rust
+    severity: error
+    message: only rustdoc comments are allowed
+    rule:
+      any:
+        - kind: line_comment
+        - kind: block_comment
+      not:
+        has:
+          kind: doc_comment
+    fix: ""
+  '';
+
+  nix = writeText "nix.yml" ''
+    id: nix-comment
+    language: nix
+    severity: error
+    message: no comments are allowed in Nix
+    rule:
+      kind: comment
+    fix: ""
+  '';
+
+  yaml = writeText "yaml.yml" ''
+    id: yaml-comment
+    language: yaml
+    severity: error
+    message: no comments are allowed in YAML
+    rule:
+      kind: comment
+    fix: ""
+  '';
+
+  bash = writeText "bash.yml" ''
+    id: bash-comment
+    language: bash
+    severity: error
+    message: no comments are allowed in shell
+    rule:
+      kind: comment
+      not:
+        regex: '^#!'
+    fix: ""
+  '';
+in
+runCommand "comment-rules" { } ''
+  mkdir -p $out/rules
+  cp ${sgconfig} $out/sgconfig.yml
+  cp ${rust} $out/rules/rust.yml
+  cp ${nix} $out/rules/nix.yml
+  cp ${yaml} $out/rules/yaml.yml
+  cp ${bash} $out/rules/bash.yml
+''
+```
+
+And the hook module that calls it:
+
+```nix
+# nix/hooks.nix
+{ inputs, ... }:
+{
+  imports = [ inputs.hk-nix.flakeModules.default ];
+  perSystem =
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
+    let
+      treefmt = lib.getExe config.treefmt.build.wrapper;
+
+      rules = pkgs.callPackage ./_comment-rules.nix { };
+      astGrep = "${pkgs.ast-grep}/bin/ast-grep";
+      scan = "${astGrep} scan -c ${rules}/sgconfig.yml";
+    in
+    {
+      hk-nix.settings.hooks = {
+        "pre-commit" = {
+          fix = true;
+          stash = "git";
+          steps = {
+            strip-comments = {
+              glob = [
+                "*.rs"
+                "*.nix"
+                "*.yaml"
+                "*.yml"
+                "*.sh"
+              ];
+              exclude = [ "charts/**" ];
+              exclusive = true;
+              check = "${scan} --error {{files}}";
+              fix = "${scan} --error {{files}} || { ${scan} --update-all {{files}}; exit 1; }";
+            };
+
+            treefmt.check = "${treefmt} --fail-on-change --no-cache {{files}}";
+            treefmt.fix = "${treefmt} {{files}}";
+          };
+        };
+
+        "pre-push".steps = {
+          deadnix.glob = "*.nix";
+          deadnix.check = "${lib.getExe pkgs.deadnix} --fail {{files}}";
+          clippy.check = "cargo clippy --all-targets --all-features -- -D warnings";
+          lock-check.check = "cargo metadata --locked --format-version 1 > /dev/null";
+        };
+
+        "commit-msg".steps.conventional.builtin = config.hk-nix.builtins.check_conventional_commit;
+      };
+    };
+}
+```
+
+`callPackage` takes the rules from the same nixpkgs the hook's ast-grep comes from, so the rules and
+the binary that reads them are pinned together.
+
 ## Gotchas
 
 ### `--update-all --error` exits 0
