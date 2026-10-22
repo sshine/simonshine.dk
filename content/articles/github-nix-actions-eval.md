@@ -1,11 +1,13 @@
 +++
-date = '2026-10-15T13:19:47+02:00'
-draft = true
+date = '2026-10-21T13:19:47+02:00'
+draft = false
 title = 'Four ways to install Nix in GitHub Actions'
 tags = ['nix']
 +++
 
-A GitHub Actions workflow that uses Nix starts with one of these lines:
+To run Nix in GitHub Actions, the default CI runner needs Nix installed first.
+
+Here are some popular alternatives for pre-made CI actions that do this:
 
 ```yaml
 - uses: cachix/install-nix-action@v31
@@ -14,19 +16,9 @@ A GitHub Actions workflow that uses Nix starts with one of these lines:
 - uses: DeterminateSystems/nix-installer-action@v23
 ```
 
-Two of them are called `nix-installer-action` and they are not the same project. They share a git
-history up to January 2023, after which [NixOS/nix-installer-action][nixos] was rewritten as a
-composite action that installs upstream Nix, while [DeterminateSystems/nix-installer-action][ds]
-kept going as a JS action that installs Determinate Nix.
+All of these work, and do more or less the same thing. Are they all equally fast?
 
-[nixos]: https://github.com/NixOS/nix-installer-action
-[ds]: https://github.com/DeterminateSystems/nix-installer-action
-
-I wanted numbers rather than opinions, so all four went into one repository, one job each.
-
-## One job, four `uses:` lines
-
-The four workflows are identical apart from the `uses:` line of the install step:
+I've benchmarked each of them by first running the installer, and then running `nixpkgs#hello`.
 
 ```yaml
 # .github/workflows/install-nix-action.yml
@@ -45,11 +37,12 @@ jobs:
             "https://github.com/NixOS/nixpkgs/archive/ac62194c3917d5f474c1a844b6fd6da2db95077d.tar.gz") {}; hello'
 ```
 
-No input set on any of the four, no companion cache action, no `permissions` block. The build
-expression needs neither flakes nor a channel, so the same line works everywhere.
+I didn't specify any input parameters on them, and I didn't add any explicit cache or `permissions` block.
+
+The build expression needs neither flakes nor a channel.
 
 Each action ran cold, after `gh cache delete --all`, then warm immediately after, one run in flight
-at a time. All of it on `ubuntu-latest`, 2026-10-15, with 0 s of queue delay on every run.
+at a time. All of it on `ubuntu-latest`, 2026-10-15.
 
 ## The numbers
 
@@ -60,26 +53,24 @@ at a time. All of it on `ubuntu-latest`, 2026-10-15, with 0 s of queue delay on 
 | nix-quick-install-action | 0.71 s | 0.62 s | 42 s | 17 s |
 | DeterminateSystems/nix-installer-action | 8.82 s | 10.08 s and 7.50 s | 24 to 30 s | 5 to 6 s |
 
-Install cost spans more than an order of magnitude, 0.7 s to about 9 s. Job total runs the other
-way: the fastest installer has the slowest job, and the slowest installer has the fastest job.
+While Determinate Nix has a longer installation time, its total running time is lower.
 
-## Install is not the job
+For all but Determinate Nix, installing Nix takes ~1-10% of the time, and the two nixpkgs
+evaluations take up ~80% or more.
 
-For the three that install upstream Nix, the install step is 1 to 11 percent of the job and the two
-nixpkgs evaluations are 80 percent or more. The pinned `hello` build substitutes 9.7 MiB over five
+The pinned `hello` build substitutes 9.7 MiB over five
 paths from `cache.nixos.org` in all four jobs, so those 14 s are evaluation, not download.
 
-Determinate Nix builds the same expression in 5 to 6 s. Its `/etc/nix/nix.conf` sets
-`lazy-trees = true`, which is the obvious suspect, but it is also a different Nix distribution, so
-that is two variables moving at once. Nothing here isolates them.
+Determinate Nix builds the same expression in 5 to 6 s. Its `/etc/nix/nix.conf` sets `lazy-trees =
+true`, which is the obvious suspect, but it is also a different Nix distribution, so that is two
+variables moving at once. Nothing here isolates them.
 
 nix-quick-install-action is 3 to 4 s slower on both build steps, against all four runs of the two
-upstream daemon installers. That gap replicated on both of its runs.
+upstream daemon installers. That gap showed on both of its runs.
 
 ## Cold and warm are the same run twice
 
-Three of the four write no Actions cache at all: `gh cache list` was empty before the first run and
-after all six of theirs.
+Only Determinate Nix uses cache to install Nix, so `gh cache list` was empty before and after.
 
 The Determinate action writes exactly one entry, 46.87 MiB, during the install step rather than the
 post step:
@@ -89,9 +80,13 @@ $ gh cache list
 8988227201  determinatesystem-nix-installer-x86_64-linux-06522f9daa970bf151faf79cee6ffda3  46.87 MiB
 ```
 
-Both warm runs restored it, which I checked by watching `accessedAt` move while `createdAt` stayed
-put. It buys no wall clock: a 1.2 s CDN fetch becomes a 1.6 s and then a 1.1 s restore. What it buys
-is not depending on `cf.install.determinate.systems`.
+Both warm runs restored it, evidenced by the `accessedAt` field moving while `createdAt` stayed put.
+
+No wallclock time gain: a 1.2 s CDN fetch becomes a 1.6 s and then a 1.1 s restore.
+
+What you get is not depending on `cf.install.determinate.systems`.
+
+I see
 
 ## What you actually get
 
