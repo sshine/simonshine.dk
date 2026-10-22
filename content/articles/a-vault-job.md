@@ -1,5 +1,5 @@
 +++
-date = '2026-10-10T13:04:12+02:00'
+date = '2026-10-21T13:04:12+02:00'
 draft = false
 title = 'A Vault Job'
 tags = ['nix', 'kubernetes', 'secrets', 'kubenix']
@@ -83,7 +83,7 @@ path exists at all. On a KV v2 mount they are separate paths with separate capab
 ## Getting a secret out of Vault and into a pod
 
 To automate the propagation of Vault secrets into Kubernetes `Secret`s, the [Vault Secrets
-Operator][vso] (VSO) renders the result as an ordinary `Secret`:
+Operator][vso] (VSO) renders a `VaultStaticSecret` as an ordinary `Secret`:
 
 [vso]: https://developer.hashicorp.com/vault/docs/platform/k8s/vso
 
@@ -121,7 +121,7 @@ env = [
 
 The machinery necessary for that to happen comes in four parts:
 
-### 1. A `VaultAuth` naming the role VSO itself logs in as
+### 1. A `VaultAuth` 
 
 ```nix
 vaultauthmethods.default = {
@@ -200,12 +200,15 @@ ConfigMap holds this:
 set -eu
 
 SA_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-VAULT_TOKEN=$(vault write -field=token auth/kubernetes/login \
-    role=incidental-bootstrap jwt="$SA_TOKEN")
+VAULT_TOKEN=$(vault write -field=token \
+  auth/kubernetes/login
+  role=incidental-bootstrap
+  jwt="$SA_TOKEN")
 export VAULT_TOKEN
 
-if vault kv metadata get secret/incidental/bootstrap >/dev/null 2>&1; then
-  echo "secret/incidental/bootstrap already populated; nothing to do."
+SECRET="secret/incidental/bootstrap"
+if vault kv metadata get "$SECRET" >/dev/null 2>&1; then
+  echo "$SECRET already populated; nothing to do."
   exit 0
 fi
 
@@ -215,8 +218,8 @@ randstr() {
 
 token_value=$(randstr 48)
 
-vault kv put secret/incidental/bootstrap token="$token_value"
-echo "secret/incidental/bootstrap bootstrapped."
+vault kv put $SECRET token="$token_value"
+echo "$SECRET bootstrapped."
 ```
 
 The value exists for the length of one shell variable in a pod that then exits. I have never seen
@@ -292,87 +295,3 @@ The test asserts the shape rather than the behaviour, since the policy lives in 
   (notMatches "vault kv get" script)
 ])
 ```
-
-## Example two: a secret that a third party also has to know
-
-A random string is the easy case. An OIDC client secret is the same shape with one extra step: it
-has to be registered with Keycloak, or it is just a string nobody accepts.
-
-Same `Job`, same idempotency check, with two Keycloak calls wedged in the middle:
-
-```sh
-new_secret=$(randstr 32)
-
-KC_TOKEN=$(curl -sfk -X POST "$KC_URL/realms/master/protocol/openid-connect/token" \
-    -d "username=admin" -d "password=$KC_PW" \
-    -d "grant_type=password" -d "client_id=admin-cli" \
-    | jq -r '.access_token')
-
-CLIENT_ID=$(curl -sfk "$KC_URL/admin/realms/master/clients?clientId=keel" \
-    -H "Authorization: Bearer $KC_TOKEN" | jq -r '.[0].id // empty')
-
-client_json=$(jq --arg s "$new_secret" '. + {secret: $s}' /scripts/client.json)
-curl -sfk -X POST "$KC_URL/admin/realms/master/clients" \
-    -H "Authorization: Bearer $KC_TOKEN" -H "Content-Type: application/json" \
-    -d "$client_json"
-
-vault kv put secret/keel/oauth-keycloak key=keel secret="$new_secret"
-```
-
-The call site:
-
-```nix
-# services/keel.nix
-imports = [
-  (oauth.mkKeycloakClient {
-    namespace = ns;
-    clientId = "keel";
-    displayName = "Keel";
-    client = {
-      redirectUris = [ "https://${host}/oauth2/callback" ];
-      webOrigins = [ "https://${host}" ];
-    };
-    extraRandomFields = {
-      cookie = 32;
-      basicauth = 32;
-    };
-  })
-];
-```
-
-`extraRandomFields` is the same trick again, for values Keycloak never sees. oauth2-proxy signs its
-session cookie with one. The other is a basic-auth password: Keel speaks no OIDC, so oauth2-proxy
-sits in front and replays a password that exists for no other reason.
-
-Neither has any business outside the cluster, so neither leaves it.
-
-The admin password this `Job` logs into Keycloak with arrives the same way everything else does: as
-a `VaultStaticSecret` mounted into the `Job`'s own namespace. The chain bottoms out at exactly one
-credential I typed by hand, which is the Vault root token, which is sealed.
-
-A third variant does the same against Forgejo: `POST /api/v1/users/$USER/tokens` is the one endpoint
-that takes a password rather than a token, which is what lets it run with nothing minted yet. Scoped
-to `write:repository` and `write:issue`, because the thing using it opens pull requests and does not
-administer a forge.
-
-## What this is not
-
-It is not a way to handle secrets that really do come from outside. My Hetzner token and my deSEC
-token were issued by somebody else's web UI and they live in a password manager, as they should.
-Those get into Vault by hand, once.
-
-It is also not rotation. Nothing here rotates on a schedule. A populated path is left alone, on
-purpose, because the alternative is a `Job` that quietly invalidates a credential a running pod is
-holding, which is precisely the bug above.
-
-What it removes is the category of secret that only ever existed because two of my own services
-needed to agree on a string, and which I was previously generating with `openssl rand`, pasting into
-[sops](/articles/managing-secrets-privately-with-sops-nix), and then having on my laptop for the
-rest of its life.
-
-```console
-$ kubectl logs -n incidental job/incidental-bootstrap-a3f91c4e8b02
-secret/incidental/bootstrap bootstrapped.
-```
-
-That is the entire audit trail, and it is the right amount.
