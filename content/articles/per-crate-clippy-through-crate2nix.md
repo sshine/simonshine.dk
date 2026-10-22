@@ -1,11 +1,11 @@
 +++
-date = '2026-10-19T11:22:14+02:00'
-draft = true
+date = '2026-10-21T11:22:14+02:00'
+draft = false
 title = 'Per-crate clippy through crate2nix'
 tags = ['nix', 'rust']
 +++
 
-I don't allow `.unwrap()` in tests:
+I don't allow `.unwrap()` or `.expect()` in tests:
 
 ```toml
 # Cargo.toml
@@ -14,55 +14,62 @@ expect_used = "deny"
 unwrap_used = "deny"
 ```
 
-The usual argument for allowing it is that tests may cut corners, since only programmers run them.
-I think that gets it backwards. A test that panics on `None` reports a crash at the line that
-unwrapped, when it should report a failed assertion at the line that was checking something.
+It is common to disallow `.unwrap()` in normal code, but I like to take it one step further.
 
-A rule like that needs the linter to look at test code, which means `--all-targets`:
+I used to allow `.expect()` instead of `.unwrap()`, but with LLMs, the extra effort of disallowing
+both costs nothing.
+
+The usual argument for allowing either is that tests may cut corners, since only programmers run
+them. But a test that panics will report a crash at the line that unwrapped, when it should report a
+failed assertion.
+
+So I need the linter to look at test code, which means `--all-targets`:
 
 ```bash
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 ```
 
-My CI runs on a small machine that also hosts coding agents and gets hammered by AI crawlers. A
-`cargo clippy` check there meant compiling the whole dependency tree a second time, next to the
-crate2nix build and the test run. Three compiles of one workspace, on a box already losing the
-argument for its own CPU.
+This works.
+
+Switching from nixpkgs' `buildRustPackage` to crate2nix has saved a lot of time and compilation
+effort by making a derivation for compiling each dependency, which can be shared between builds.
+
+Without this Nix build complexity, you just have a `target/` directory in your workspace root,
+typically gitignored, and rebuilding for different purposes can reuse those artifacts. You might
+still have redundant build artifacts because tests compile with debug flags.
+
+Switching to cache2nix caused some problems where clippy lints would silently stop reporting for tests.
+
+This post details how I got my Cargo workspace lints back while retaining crate2nix's cache benefits.
+
+[crate2nix]: https://github.com/nix-community/crate2nix
 
 ## tl;dr
 
 - nixpkgs' `buildRustCrate` gained a configurable `capLints` in March 2026 ([a523dd74ac01][cap])
   and `useClippy` in May 2026 ([#521993][clip]). Together they run `clippy-driver` in place of
   `rustc` on individual crates.
-- Applied to the six workspace members only, 162 of a crate's 163 derivation inputs stay identical
-  to the ordinary build, so linting costs those six crates and not the 430 below them.
 - `capLints` defaults to `"allow"`, which caps every lint including clippy's. Turn on `useClippy`,
   leave the default, and you get a check that runs, reports nothing and passes.
-- crate2nix emits no `rust-version`, so clippy loses its MSRV floor and fires lints that
-  `cargo clippy` suppresses. Mine was `clippy::chunks_exact_to_as_chunks`.
-- `crateWithTest` separates compiling tests from running them, so the lint check and the
-  integration check share one compile. The workspace compiles once per `nix flake check`.
+- crate2nix doesn't emit `rust-version`, so clippy doesn't know which MSRV to attach to.
+- crate2nix doesn't emit `lints` either, and `[lints] workspace = true` is cargo's to resolve, so the
+  workspace lint table never reaches the compiler. `buildRustCrate` takes one; pass it.
+- `crateWithTest` separates compiling tests from running them, so the lint check and the integration
+  check share one compile. The workspace compiles once per `nix flake check`.
 
 [cap]: https://github.com/NixOS/nixpkgs/commit/a523dd74ac01
 [clip]: https://github.com/NixOS/nixpkgs/pull/521993
 
 ## Why crate2nix and not crane
 
-Both read `Cargo.lock`. The difference is whether cargo also drives the build.
+Both read `Cargo.lock`. The difference is whether `cargo` also drives the build.
 
-[crane][crane] keeps it: `buildDepsOnly` runs cargo to populate `target/`, exports that directory,
-and later derivations run cargo again against it. [crate2nix][c2n] takes the graph away at
-evaluation time and emits one derivation per crate, each calling `rustc` directly.
+[crane] uses `cargo`: `buildDepsOnly` runs `cargo` to populate `target/`, exports that directory,
+and later derivations run `cargo` again against it. [crate2nix][c2n] exports a graph at evaluation
+time and emits one derivation per crate, each calling `rustc` directly, rather than `cargo`.
 
 [crane]: https://github.com/ipetkov/crane
 [c2n]: https://github.com/nix-community/crate2nix
-
-On a machine that keeps losing processes, I want Nix owning that graph. A crate that finishes is a
-store path, so an interrupted run costs one crate instead of one artifact directory holding all of
-them. `--max-jobs` then bounds the real concurrency, because Nix is scheduling the units rather
-than cargo inside a single derivation.
-
-It is also the only way to address one crate's compiler invocation, which is the whole trick.
 
 ## Swapping rustc for clippy-driver, per crate
 
@@ -78,15 +85,16 @@ base (
     useClippy = true;
     capLints = "forbid";
     rust-version = msrv;
+    inherit lints;
     extraRustcOpts = (crate.extraRustcOpts or [ ]) ++ [ "-D" "warnings" ];
   }
 )
 ```
 
-`members` comes from `builtins.readDir ../crates`, and `msrv` from the workspace manifest.
+`members` comes from `builtins.readDir ../crates`, `msrv` and `lints` from the workspace manifest.
 Dependencies fall through untouched and keep the store paths the ordinary build produced.
 
-The check is then those six crates, with `runTests` to reach their test targets:
+For my workspace's six member crates:
 
 ```nix
 # nix/_clippy.nix
@@ -102,14 +110,14 @@ linted = lib.mapAttrsToList (
 
 A one-crate source change rebuilds 11 derivations in 63 seconds.
 
-## Three ways to get a check that tests nothing
+So caching the compilation of my shared dependencies works.
 
-Each of these passed while looking at less than I thought.
+## Notes
 
-`capLints` defaults to `"allow"`. That caps every lint to allow, clippy's included, so `useClippy`
-runs clippy-driver and emits nothing. nixpkgs says as much in a comment above the parameter.
-`"forbid"` here means uncapped rather than raised: `#[allow]` and `#[expect]` keep working, and
-`-D warnings` is what makes anything fail.
+`capLints` defaults to `"allow"`. Setting it to `"forbid"` still allows `#[allow]` and `#[expect]`.
+Setting `-D warnings` makes clippy-driver fail on warnings.
+
+Clippy adjusts warnings based on the 
 
 No `rust-version` reaches the compiler. crate2nix does not emit it, `CARGO_PKG_RUST_VERSION`
 arrives empty, and clippy stops suppressing suggestions that postdate the declared minimum. With
@@ -120,6 +128,31 @@ under cargo:
 error: using `chunks_exact` with a constant chunk size
   --> src/blob.rs:34:63
    = note: `-D clippy::chunks-exact-to-as-chunks` implied by `-D warnings`
+```
+
+Nothing carries the `[lints]` table down. Each member says `[lints] workspace = true`, which cargo
+resolves against the workspace manifest; crate2nix never reads it and emits no lints of its own, so
+neither spelling reaches the compiler. `-D warnings` promotes what clippy warns about by default,
+and `unwrap_used` is a restriction lint, silent unless asked for. I planted an `.unwrap()` in a
+workspace crate: the check compiled it, printed nothing and passed.
+
+`buildRustCrate` takes a `lints` parameter shaped like the manifest table, so the repair is to read
+the table once:
+
+```nix
+# nix/_cargo-nix.nix
+lints = manifest.workspace.lints or { };
+```
+
+and add `inherit lints;` beside `useClippy` and `capLints` above. A non-empty table raises the
+default `capLints` to `"forbid"` by itself, so the two repairs agree about what they want. The same
+planted `.unwrap()`, with the table passed:
+
+```console
+… -D warnings -D clippy::expect_used -D clippy::unwrap_used -D unused_must_use --edition 2024
+error: used `unwrap()` on an `Option` value
+  --> src/lib.rs:19:5
+   = note: requested on the command line with `-D clippy::unwrap-used`
 ```
 
 Features resolve from the manifest alone. There is no `--all-features`. One of my test files opens
@@ -159,7 +192,7 @@ $ nix-store -q --requisites "$drv" | grep rust_qr-sheet-0.1.1-test.drv
 /nix/store/f64x19j6law93vif5m4kdpy33f1fk2qw-rust_qr-sheet-0.1.1-test.drv
 ```
 
-With all three repairs in, the per-crate counts match `cargo test --workspace --all-features`
+With the repairs in, the per-crate counts match `cargo test --workspace --all-features`
 exactly: 36 and 9, then 5, 8, 10, then 8 and 5 and 9, then 31 and 5. I planted a failing assertion
 to see the status survive the `tee` the runner pipes through:
 
