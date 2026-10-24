@@ -1,17 +1,19 @@
 +++
 date = '2026-10-24T19:14:16+02:00'
-draft = true
+draft = false
 title = 'NixOS laptop power policy for vibecoding'
 tags = ['nix', 'agentic']
 +++
 
-I start a coding agent on a long task, close the lid, and put the laptop in my bag.
+I start a coding agent on a long task, close the lid, and put my NixOS laptop in my backpack.
 
 By default, systemd-logind suspends the machine when the lid closes. The agent stops mid-task, its
-network connections time out, and when I open the lid again the session has died with them.
+network connections time out, and when I open the lid again the sessions have stopped. Or I disable
+suspend and risk running completely out of battery.
 
 What I want is a laptop that ignores the lid and keeps working until the battery is nearly empty,
-and then hibernates instead of dying.
+and then hibernates instead of dying, but doesn't hibernate when the lid is open. Then I can close
+the lid to indicate I'm absent and willing to hibernate, and I can code from my backpack.
 
 ## tl;dr
 
