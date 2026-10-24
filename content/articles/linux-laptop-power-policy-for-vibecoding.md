@@ -1,11 +1,12 @@
 +++
 date = '2026-10-24T19:14:16+02:00'
 draft = false
-title = 'NixOS laptop power policy for vibecoding'
+title = 'Linux laptop power policy for vibecoding'
 tags = ['nix', 'agentic']
+aliases = ['/articles/nixos-laptop-power-policy-for-vibecoding/']
 +++
 
-I start a coding agent on a long task, close the lid, and put my NixOS laptop in my backpack.
+I start a coding agent on a long task, close the lid, and put my Linux laptop in my backpack.
 
 By default, systemd-logind suspends the machine when the lid closes. The agent stops mid-task, its
 network connections time out, and when I open the lid again the sessions have stopped. Or I disable
@@ -158,8 +159,10 @@ version below reads the whole extent list instead.
 
 ## The whole module
 
-It is a [dendritic][dn] flake-parts module that exports `nixosModules.power-policy`. The shell
-script lives inside it as a `writeShellScript`, and the options become environment variables:
+The examples are Nix because that is how I manage this laptop. The policy itself is plain Linux:
+systemd-logind, ACPI, sysfs, and power-profiles-daemon. It is a [dendritic][dn] flake-parts module
+that exports `nixosModules.power-policy`. The shell script lives inside it as a
+`writeShellScript`, and the options become environment variables:
 
 [dn]: /articles/dendritic-nix-with-nixos-shell
 
