@@ -25,6 +25,8 @@ the lid to indicate I'm absent and willing to hibernate, and I can code from my 
   the same switch as GNOME's Power Saver toggle.
 - Hibernation goes to a swapfile on a LUKS root, which takes `boot.resumeDevice` and a
   `resume_offset` kernel parameter computed with `filefrag`.
+- A stale `resume_offset` loses the hibernated session, not the filesystem, so the daemon
+  re-checks the swapfile's first block before hibernating and refuses if it moved.
 
 [ppd]: https://gitlab.freedesktop.org/upower/power-profiles-daemon
 
@@ -47,8 +49,8 @@ dock, logind reads the other two.
 ## Four cases
 
 The policy is a shell loop. Each round it reads the lid state, the lowest capacity across all
-`BAT*` supplies, and whether any `Mains` or `USB` supply is online. Stripped of logging and the
-dry-run branch, the decision is:
+`BAT*` supplies, and whether any `Mains` or `USB` supply is online. Stripped of logging, the
+dry-run branch, and the offset guard, the decision is:
 
 ```bash
 if [ -n "$capacity" ] && [ "$capacity" -le "$threshold" ]; then
@@ -124,8 +126,35 @@ of the swapfile's first extent:
 filefrag -v /var/lib/swapfile | awk '$1 == "0:" {print $4}'
 ```
 
-That number changes if the swapfile is ever recreated, so the command sits in a comment next to
-the value.
+`resume_offset` is a read pointer, not a write target. Hibernation writes the image through the
+active swap area. At boot the kernel reads the offset to find that image. If the swapfile is
+recreated at a different offset, the next boot reads the wrong block, fails the swap signature and
+image checksum, and boots normally. The hibernated session is gone, but no other file is
+overwritten.
+
+That is still a bad way to lose a session, so the daemon does not trust the number. It compares the
+swapfile's current first block with the configured offset once at startup and again immediately
+before hibernating. If they differ, it logs the mismatch and switches to `power-saver` instead of
+hibernating:
+
+```console
+power-policy: refusing to hibernate: swapfile offset is 3606528, configured resumeOffset is 3606529
+```
+
+The laptop sets the swapfile and leaves the guard on:
+
+```nix
+swapfile = "/var/lib/swapfile";
+verifyResumeOffset = true;
+```
+
+The check needs `filefrag` from `e2fsprogs`. If it cannot read the file, the daemon refuses rather
+than guess. A manual `systemctl hibernate` bypasses the daemon and the guard, so update the offset
+and rebuild before doing that.
+
+The first version of the guard piped `filefrag` into `awk ... exit`, which got SIGPIPE on a 16G
+swapfile. With `set -euo pipefail` that killed the daemon every time it checked the offset. The
+version below reads the whole extent list instead.
 
 ## The whole module
 
@@ -154,6 +183,9 @@ script lives inside it as a `writeShellScript`, and the options become environme
         dry_run="''${POWER_POLICY_DRY_RUN:-0}"
         hibernate_on_ac="''${POWER_POLICY_HIBERNATE_ON_AC:-0}"
         post_hibernate_delay="''${POWER_POLICY_POST_HIBERNATE_DELAY:-300}"
+        swapfile="''${POWER_POLICY_SWAPFILE:-}"
+        resume_offset="''${POWER_POLICY_RESUME_OFFSET:-}"
+        verify_resume_offset="''${POWER_POLICY_VERIFY_RESUME_OFFSET:-1}"
 
         log() {
           printf 'power-policy: %s\n' "$*"
@@ -194,6 +226,17 @@ script lives inside it as a `writeShellScript`, and the options become environme
           fi
         }
 
+        swapfile_offset() {
+          filefrag -v "$swapfile" 2>/dev/null | awk '$1 == "0:" { sub(/\..*/, "", $4); print $4 }' || true
+        }
+
+        if [ "$verify_resume_offset" = "1" ] && [ -n "$swapfile" ] && [ -n "$resume_offset" ]; then
+          actual_offset="$(swapfile_offset)"
+          if [ "$actual_offset" != "$resume_offset" ]; then
+            log "warning: swapfile offset is ''${actual_offset:-unknown}, configured resumeOffset is $resume_offset; hibernation will be refused"
+          fi
+        fi
+
         log "starting (threshold=$threshold%, poll=''${poll}s, profile=$profile)"
         while :; do
           if [ -z "$lid_file" ]; then
@@ -231,17 +274,29 @@ script lives inside it as a `writeShellScript`, and the options become environme
 
           if [ -n "$capacity" ] && [ "$capacity" -le "$threshold" ]; then
             if [ "$lid" = "closed" ] && { [ "$hibernate_on_ac" = "1" ] || [ "$ac_online" -eq 0 ]; }; then
-              if [ "$dry_run" = "1" ]; then
-                log "battery ''${capacity}%, lid closed, AC ''${ac_online}; would hibernate"
-              else
-                log "battery ''${capacity}%, lid closed, AC ''${ac_online}; hibernating"
-                if systemctl hibernate; then
-                  sleep "$post_hibernate_delay"
-                else
-                  log "hibernate failed; falling back to power saver"
-                  set_power_saver
-                  sleep "$poll"
+              can_hibernate=1
+              if [ "$verify_resume_offset" = "1" ] && [ -n "$swapfile" ] && [ -n "$resume_offset" ]; then
+                actual_offset="$(swapfile_offset)"
+                if [ "$actual_offset" != "$resume_offset" ]; then
+                  log "refusing to hibernate: swapfile offset is ''${actual_offset:-unknown}, configured resumeOffset is $resume_offset"
+                  can_hibernate=0
                 fi
+              fi
+              if [ "$can_hibernate" = "1" ]; then
+                if [ "$dry_run" = "1" ]; then
+                  log "battery ''${capacity}%, lid closed, AC ''${ac_online}; would hibernate"
+                else
+                  log "battery ''${capacity}%, lid closed, AC ''${ac_online}; hibernating"
+                  if systemctl hibernate; then
+                    sleep "$post_hibernate_delay"
+                  else
+                    log "hibernate failed; falling back to power saver"
+                    set_power_saver
+                    sleep "$poll"
+                  fi
+                fi
+              else
+                set_power_saver
               fi
             elif [ "$lid" != "closed" ]; then
               set_power_saver
@@ -306,6 +361,18 @@ script lives inside it as a `writeShellScript`, and the options become environme
           default = null;
           description = "Physical offset of the swapfile's first block, as reported by filefrag's physical_offset column.";
         };
+
+        swapfile = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          description = "Swapfile used for hibernation. When set, the daemon verifies its first physical block against resumeOffset before hibernating.";
+        };
+
+        verifyResumeOffset = lib.mkOption {
+          type = lib.types.bool;
+          default = true;
+          description = "Refuse to hibernate if the swapfile's current first block no longer matches resumeOffset.";
+        };
       };
 
       config = lib.mkIf cfg.enable {
@@ -329,6 +396,7 @@ script lives inside it as a `writeShellScript`, and the options become environme
           after = lib.optional config.services.power-profiles-daemon.enable "power-profiles-daemon.service";
           path = with pkgs; [
             coreutils
+            e2fsprogs
             findutils
             gawk
             power-profiles-daemon
@@ -341,6 +409,9 @@ script lives inside it as a `writeShellScript`, and the options become environme
             POWER_POLICY_LID_FILE = cfg.lidStateFile;
             POWER_POLICY_HIBERNATE_ON_AC = if cfg.hibernateOnAC then "1" else "0";
             POWER_POLICY_POST_HIBERNATE_DELAY = toString cfg.postHibernateDelay;
+            POWER_POLICY_SWAPFILE = if cfg.swapfile != null then cfg.swapfile else "";
+            POWER_POLICY_RESUME_OFFSET = if cfg.resumeOffset != null then toString cfg.resumeOffset else "";
+            POWER_POLICY_VERIFY_RESUME_OFFSET = if cfg.verifyResumeOffset then "1" else "0";
           };
           serviceConfig = {
             Type = "simple";
@@ -362,6 +433,7 @@ script lives inside it as a `writeShellScript`, and the options become environme
       };
     };
 }
+
 ```
 
 The laptop enables it like this:
@@ -377,6 +449,7 @@ config.flake.nixosModules.power-policy
     #   filefrag -v /var/lib/swapfile | awk '$1 == "0:" {print $4}'
     resumeDevice = "/dev/mapper/cryptroot";
     resumeOffset = 3606528;
+    swapfile = "/var/lib/swapfile";
   };
 }
 ```
