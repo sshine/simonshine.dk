@@ -1,6 +1,6 @@
 +++
 date = '2026-10-25T13:00:29+01:00'
-draft = true
+draft = false
 title = 'Running Forgejo on a Hetzner Kubernetes cluster'
 tags = ['nix', 'kubernetes', 'kubenix', 'forgejo']
 +++
