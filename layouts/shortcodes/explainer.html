@@ -1,0 +1,22 @@
+{{- /* The explainer in this bundle's player/, played live, with its transcript.
+       The transcript is rendered here rather than by player.js so that it reads
+       as part of the page, and is there for readers without JavaScript. */ -}}
+{{- $m := partial "explainer-manifest.html" .Page -}}
+{{- if not $m -}}
+  {{- errorf "%s: the explainer shortcode needs player/manifest.json beside index.md" .Page.File.Path -}}
+{{- end -}}
+{{- $base := path.Join .Page.RelPermalink "player" -}}
+<link rel="stylesheet" href="{{ $base }}/player.css">
+<script defer src="{{ $base }}/player.js"></script>
+<div class="explainer" data-manifest="{{ $base }}/manifest.json">
+  <noscript><p>The animation needs JavaScript; the transcript below does not.</p></noscript>
+  <div class="explainer-transcript">
+    <h2 id="transcript">Transcript</h2>
+    {{- range $m.scenes }}
+    <section class="explainer-chapter" data-scene="{{ .id }}">
+      <h3 class="explainer-chapter-title"><a href="#t={{ .start }}" data-at="{{ .start }}">{{ .title }}</a></h3>
+      <p>{{ range $i, $c := .cues }}{{ if $i }} {{ end }}<span class="explainer-cue" data-at="{{ $c.at }}">{{ $c.text }}</span>{{ end }}</p>
+    </section>
+    {{- end }}
+  </div>
+</div>

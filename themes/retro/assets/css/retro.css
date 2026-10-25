@@ -378,3 +378,54 @@ table {
     overflow-x: auto;
   }
 }
+
+/* The explainer player (player/player.css in each explainer bundle) inherits
+   type and colour; these put it on the sheet. The stage runs out to the
+   sheet's edges like a plate in a book, and its scenes are drawn on the same
+   paper, so a hairline above and below is all that sets it apart. player.css
+   loads after this file, so these rules are scoped under .body to win. */
+.body .explainer {
+  --explainer-accent: var(--link);
+  --explainer-track: var(--desk);
+  --explainer-rule: var(--hairline);
+  --explainer-mark: var(--desk);
+  --explainer-frame: var(--paper);
+}
+
+.body .explainer-stage {
+  width: calc(100% + 4.8em);
+  margin: 0 -2.4em;
+  border-top: 1px solid #c9c6bd;
+  border-bottom: 1px solid #c9c6bd;
+}
+
+.body .explainer-btn {
+  color: var(--link);
+}
+
+.body .explainer-btn:hover {
+  color: var(--link-hover);
+}
+
+.body .explainer-start {
+  background: var(--ink);
+  border-radius: 0;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.body .explainer-chapter-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.body .explainer-chapter-title a:hover,
+.body .explainer-chapter.is-current .explainer-chapter-title a {
+  color: var(--link);
+}
+
+@media (max-width: 600px) {
+  .body .explainer-stage {
+    width: calc(100% + 6px);
+    margin: 0 -3px;
+  }
+}

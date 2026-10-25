@@ -5,7 +5,7 @@
       <span class="posts-list-item-description">
         {{ .PublishDate.Format "Jan 2, 2006" }}
         <span class="sep">&middot;</span>
-        {{ .ReadingTime }} min read
+        {{ partial "length.html" . }}
       </span>
     </li>
   {{- end }}

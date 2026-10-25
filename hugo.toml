@@ -84,3 +84,21 @@ pagerSize = 500
   icon = "rss"
   name = "RSS"
   url = "/index.xml"
+
+# An explainer is a page bundle, content/explainers/<slug>/index.md, beside a
+# player/ directory of scene pages, scripts and narration that is served as is.
+# Hugo would read those scene pages as content, so player/ is lifted out of the
+# content tree and published as static files at the same path instead.
+[[module.mounts]]
+  source = "content"
+  target = "content"
+  files = ["! explainers/*/player/**"]
+
+[[module.mounts]]
+  source = "static"
+  target = "static"
+
+[[module.mounts]]
+  source = "content/explainers"
+  target = "static/explainers"
+  files = ["*/player/**"]

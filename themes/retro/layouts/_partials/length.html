@@ -1,0 +1,7 @@
+{{- /* How long a page takes: reading time, or running time for an explainer. */ -}}
+{{- with partial "explainer-manifest.html" . -}}
+  {{- $s := div .duration 1000 | int -}}
+  {{- printf "%d:%02d" (div $s 60) (mod $s 60) }} explainer
+{{- else -}}
+  {{- .ReadingTime }} min read
+{{- end -}}

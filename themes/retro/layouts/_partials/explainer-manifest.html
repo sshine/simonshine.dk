@@ -1,0 +1,11 @@
+{{- /* The manifest of an explainer bundle, or an empty dict for any other page.
+       player/ is mounted as static (see hugo.toml), so it is not a page
+       resource and has to be read from disk. */ -}}
+{{- $manifest := dict -}}
+{{- with .File -}}
+  {{- $path := path.Join "content" .Dir "player" "manifest.json" -}}
+  {{- if fileExists $path -}}
+    {{- $manifest = os.ReadFile $path | transform.Unmarshal -}}
+  {{- end -}}
+{{- end -}}
+{{- return $manifest -}}
