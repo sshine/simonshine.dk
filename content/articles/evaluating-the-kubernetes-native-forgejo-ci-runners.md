@@ -1,6 +1,6 @@
 +++
 date = '2026-10-25T13:19:41+01:00'
-draft = true
+draft = false
 title = 'Evaluating the Kubernetes-native Forgejo CI runners'
 tags = ['nix', 'kubernetes', 'kubenix', 'forgejo']
 +++
