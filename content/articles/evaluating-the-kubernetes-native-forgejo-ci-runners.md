@@ -38,9 +38,10 @@ cluster](/articles/running-forgejo-on-a-hetzner-kubernetes-cluster).
 
 ## One Job per job
 
-The plugin architecture lives entirely in the runner. The Forgejo server knows nothing about it;
-mine is 15.0.3, and v13 worked against it when I registered a runner from my laptop first. v13 also
-drops `set-output`, `set-env`, `add-path` and the `DOCKER_USERNAME`/`DOCKER_PASSWORD` auth.
+The plugin architecture lives entirely in the runner, and the Forgejo server knows nothing about
+it; mine is 15.0.3, and v13 worked against it when I registered a runner from my laptop first.
+v13 also drops `set-output`, `set-env`, `add-path` and the `DOCKER_USERNAME`/`DOCKER_PASSWORD`
+auth.
 
 The backend turns each job into a `batch/v1` Job. Its `main` container sleeps, and the daemon
 execs every step into it:
@@ -185,7 +186,7 @@ The chart sets the sidecar's `--listen` from a value, and the daemon reads its a
 file. Nothing reconciles the two, and a mismatch is a runner that starts and never claims a job, so
 a test compares them.
 
-The `config/hash` annotation came from a mistake. A running daemon keeps the `runner.yaml` it
+The `config/hash` annotation came from a mistake: a running daemon keeps the `runner.yaml` it
 started with. When I scaled up after changing the labels, old and new pods declared different
 labels under one runner id. Hashing the config into the pod template makes a config change a
 rollout.
@@ -216,9 +217,9 @@ daemon: images are built with `skopeo` transports, and the old config already se
 | test-image     | 266s | 126s   |
 | build-and-push | 294s | 227s   |
 
-Speed was not the reason. On 9 October a Rust `nix build`, about 2.4 GiB, pushed one worker into
-memory pressure, and Talos v1.12's userspace OOM controller killed five pod cgroups in four
-seconds. Cilium went second, and the node had no CNI for about four minutes.
+I moved for memory accounting rather than speed. On 9 October a Rust `nix build`, about 2.4 GiB,
+pushed one worker into memory pressure, and Talos v1.12's userspace OOM controller killed five pod
+cgroups in four seconds. Cilium went second, and the node had no CNI for about four minutes.
 
 A privileged container shares the host cgroup namespace, so dockerd created job containers at
 `/sys/fs/cgroup/docker/<id>`, a sibling of `kubepods`, with `memory.max = max`. Talos ranks only
@@ -230,7 +231,7 @@ memory_max.hasValue() ? 0.0 : weight[class] * memory_current
 
 The build was never a candidate, and priority classes do not enter into it. Cilium has no memory
 limit, so it scores on usage alone. On that worker it was the victim in 6 of 27 retained OOM
-actions. The kernel OOM killer never ran.
+actions, while the kernel OOM killer never ran.
 
 A Job sits in `kubepods` under a `memory.max`, which the controller reads. The dind rollback got
 the same fix, in case it is ever needed:
@@ -247,8 +248,8 @@ exec dockerd-entrypoint.sh --cgroup-parent="${cg%/*}"
 
 ## The sandbox still wants privileged
 
-Dropping `privileged` from the job containers was part of the swap. A local build passed without
-it. The next day a Rust project's CI failed:
+Dropping `privileged` from the job containers was part of the swap, since a local build passed
+without it, but the next day a Rust project's CI failed:
 
 ```console
 error: home directory "/homeless-shelter" exists; please remove it to assure purity of builds without sandboxing
@@ -256,8 +257,8 @@ error: recipe `image` failed on line 135 with exit code 1
 ⚙️ [runner]: plugin exec: exit code 1
 ```
 
-That local build had passed unsandboxed. `sandbox-fallback` defaults to true, so without privilege
-nix built impurely, said so only at debug level, and cargo wrote to `$HOME`. With `--debug`:
+The local build had run unsandboxed: `sandbox-fallback` defaults to true, so without privilege nix
+built impurely, said so only at debug level, and cargo wrote to `$HOME`. With `--debug`:
 
 ```console
 PID namespaces do not work on this system: cannot remount /proc
@@ -281,10 +282,10 @@ was the cgroup its daemon escaped to, not the privilege alone.
 
 - The protocol is alpha and the plugin is a third party. That is why dind still exists at zero
   replicas.
-- Three replicas share one runner uuid, and Forgejo shows one row, id 30. It works. The 29 rows
-  from dind's register-on-start days are still listed.
+- Three replicas share one runner uuid, and Forgejo shows one row, id 30, which works fine. The 29
+  rows from dind's register-on-start days are still listed.
 - Each job ends with a burst of `Websocket Ping failed ... use of closed network connection` from
-  client-go tearing down the step's exec stream. A healthy run reads like a broken one.
+  client-go tearing down the step's exec stream, so a healthy run reads like a broken one.
 - The runner logs `failed to fetch task` on a DNS hiccup or a 504, and carries on.
 - Idle, each pod uses 10 to 21Mi for the runner, 9 to 15Mi for the plugin, and about 1m CPU.
 - The namespace is still `pod-security: privileged`, which the job pods now need.
@@ -321,9 +322,9 @@ jobAntiAffinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution =
 ```
 
 Memory is requested at the limit because the scheduler places on requests. CPU is burstable,
-because over a CPU limit a build is throttled, and over a memory limit it is killed. 2Gi because no
-worker had 3Gi free. Cargo and nix size their parallelism from the node's cores, not the cgroup's,
-and peak memory follows the job count.
+because over a CPU limit a build is throttled, and over a memory limit it is killed. The limit is
+2Gi because no worker had 3Gi free. Cargo and nix size their parallelism from the node's cores,
+not the cgroup's, and peak memory follows the job count.
 
 Anti-affinity is required, not preferred, since a preference is dropped exactly when the node is
 full. Capacity went to 1 with three replicas, one per worker. A pending pod would queue fine, but a
@@ -361,9 +362,9 @@ Each ends in `plugin exec: exit code 137`, then `container not found ("main")`.
 
 In a pod built from the same podspec it was OOMKilled at the 2Gi limit after about five minutes.
 `memory.oom.group` is 1 on the container, so one OOM kill takes the whole container, and every
-later exec finds it gone. The same commit passes `nix flake check` on a workstation, and its
-`release` job passes on this runner. Nothing alerted on any of it.
+later exec finds it gone. The same commit passes `nix flake check` on a workstation, its `release`
+job passes on this runner, and no alert fired for any of the failures.
 
-2Gi is not enough to compile this project. Removing the cap brings back the build that takes
+2Gi is not enough to compile this project, but removing the cap brings back the build that takes
 Cilium with it. Running anything on Kubernetes comes down to estimating resource bounds well and
 working inside them, and this runner makes that estimate for every repository at once.
