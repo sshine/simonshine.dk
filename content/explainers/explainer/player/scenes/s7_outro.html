@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet" href="../lib/scene.css">
+<script src="../lib/clock.js"></script>
+<meta charset="utf-8">
+<title>One manuscript, two ways to watch</title>
+<script src="../lib/anim.js"></script>
+<style>
+  #title { position: absolute; left: 0; right: 0; top: 340px; text-align: center;
+           font-size: 96px; font-weight: 700; letter-spacing: -0.5px; }
+  #row { position: absolute; left: 0; right: 0; top: 560px; display: flex;
+         justify-content: center; gap: 60px; font-family: var(--mono); font-size: 34px; }
+  #row > div { border: 2px solid var(--ink); padding: 18px 30px; }
+  #mid { border: none !important; color: var(--muted); font-family: var(--sans); font-style: italic; }
+  #path { position: absolute; left: 0; right: 0; top: 760px; text-align: center;
+          font-family: var(--mono); font-size: 30px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div id="title" class="hidden0">One manuscript, two ways to watch</div>
+  <div id="row">
+    <div id="a" class="hidden0">explainer.mp4</div>
+    <div id="mid" class="hidden0">or</div>
+    <div id="b" class="hidden0">a page, like this one</div>
+  </div>
+  <div id="path" class="hidden0">~/.agents/skills/explainer</div>
+
+</div>
+
+<script>
+(function () {
+  window.render = function render() {
+    enter("title", 200);
+    pop("a", 1500);
+    fadeIn("mid", 2000);
+    pop("b", 2400);
+    // "That is the explainer skill"
+    enter("path", 3600);
+  };
+
+  window.render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+/* The explainer scenes in this site's colours and type. It is laid over the
+ * explainer skill's lib/scene.css, whose components only read these variables,
+ * and is copied into each explainer's player/lib/theme.css on export:
+ *
+ *   just page <video> <this repo>/content/explainers/<video>/player \
+ *     --css <this repo>/assets/explainers/scene-theme.css
+ *
+ * Hugo never processes it; it lives here so the next explainer can find it.
+ * The values follow themes/retro/assets/css/retro.css. */
+
+:root,
+:root[data-theme] {
+  --bg:           #fff;
+  --panel:        #f2f0ec;
+  --panel2:       #fff;
+  --panel-border: #c9c6bd;
+  --ink:          #000;
+  --muted:        #555;
+  --accent:       #0000cc;
+  --accent2:      #cc0000;
+  --tag-bg:       #fff;
+  --danger:       #cc0000;
+  --ok:           #1d6b2f;
+  --sans: Georgia, "Times New Roman", serif;
+  --mono: "DejaVu Sans Mono", Menlo, Consolas, monospace;
+
+  /* Code sits on the desk colour, as <pre> does on the page. */
+  --term-bg:      #e8e6e0;
+  --term-panel:   #c9c6bd;
+  --term-border:  #c9c6bd;
+  --term-ink:     #000;
+  --term-muted:   #555;
+  --term-accent:  #0000cc;
+  --term-accent2: #8a5300;
+  --term-danger:  #cc0000;
+  --term-ok:      #1d6b2f;
+  --term-value:   #6b2c91;
+  --term-dot:     #999;
+}
+
+body {
+  background: var(--bg);
+}
+
+.header .rule {
+  background: var(--ink);
+  border-radius: 0;
+}
+
+.kicker {
+  font-family: var(--sans);
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+
+.panel,
+.filecard,
+.term,
+.codefile {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.chip {
+  border-radius: 0;
+}
+
+.chip.tag {
+  background: var(--bg);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}

@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet" href="../lib/scene.css">
+<script src="../lib/clock.js"></script>
+<meta charset="utf-8">
+<title>Two ways to play the same pages</title>
+<script src="../lib/anim.js"></script>
+<style>
+  #src { position: absolute; left: 96px; top: 520px; width: 300px; height: 150px;
+         border: 2px solid var(--ink); background: var(--bg);
+         display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  #src .t { font-size: 36px; font-weight: 700; }
+  #src .s { font-family: var(--mono); font-size: 20px; color: var(--muted); margin-top: 6px; }
+  .lane { position: absolute; left: 470px; font-size: 28px; font-style: italic; color: var(--muted); }
+  #laneA { top: 300px; }
+  #laneB { top: 700px; }
+  .node { position: absolute; height: 70px; padding: 0 22px; display: flex; align-items: center;
+          font-family: var(--mono); font-size: 26px; border: 1.5px solid var(--panel-border);
+          background: var(--panel); white-space: nowrap; }
+  .node.end { border: 2px solid var(--ink); background: var(--bg); font-weight: 700; }
+  .rowA { top: 355px; }
+  .rowB { top: 755px; }
+  #strip { position: absolute; top: 352px; display: flex; gap: 6px; }
+  #strip div { width: 44px; height: 76px; border: 1.5px solid var(--panel-border); background: var(--panel); }
+  #here { position: absolute; left: 1400px; top: 850px; font-size: 30px; color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="header hidden0" id="hdr">
+    <div class="kicker">explainer · 5/7</div>
+    <div class="title">Two ways to play the same pages</div>
+    <div class="rule"></div>
+  </div>
+
+  <div id="src" class="hidden0"><div class="t">scene pages</div><div class="s">render(T)</div></div>
+
+  <div class="lane hidden0" id="laneA">a video: record every frame</div>
+  <div class="lane hidden0" id="laneB">a page: record nothing</div>
+
+  <svg class="wires">
+    <path id="fa" class="wire" d="M396 575 C 430 575, 430 390, 470 390"/>
+    <path id="a1" class="wire" d="M650 390 L 700 390"/>
+    <path id="a2" class="wire" d="M1000 390 L 1060 390"/>
+    <path id="a3" class="wire" d="M1200 390 L 1280 390"/>
+    <path id="fb" class="wire accent" d="M396 615 C 430 615, 430 790, 470 790"/>
+    <path id="b1" class="wire accent" d="M720 790 L 770 790"/>
+    <path id="b2" class="wire accent" d="M1080 790 L 1130 790"/>
+    <path id="b3" class="wire accent" d="M1330 790 L 1380 790"/>
+  </svg>
+
+  <div class="node rowA hidden0" id="na1" style="left:470px">chromium</div>
+  <div id="strip" style="left:700px">
+    <div class="hidden0"></div><div class="hidden0"></div><div class="hidden0"></div>
+    <div class="hidden0"></div><div class="hidden0"></div><div class="hidden0"></div>
+  </div>
+  <div class="node rowA hidden0" id="na3" style="left:1060px">ffmpeg</div>
+  <div class="node rowA end hidden0" id="na4" style="left:1280px">explainer.mp4</div>
+
+  <div class="node rowB hidden0" id="nb1" style="left:470px">narration.mp3</div>
+  <div class="node rowB hidden0" id="nb2" style="left:770px">audio.currentTime</div>
+  <div class="node rowB hidden0" id="nb3" style="left:1130px">hfSeek(t)</div>
+  <div class="node rowB end hidden0" id="nb4" style="left:1380px">this page</div>
+  <div id="here" class="hidden0">you are here</div>
+
+</div>
+
+<script>
+(function () {
+  const frames = document.getElementById("strip").children;
+
+  window.render = function render() {
+    enter("hdr", 300);
+    enter("src", 800);
+
+    // "To make a video, a headless browser steps the clock one frame at a time"
+    draw("fa", 1800, 500);
+    enter("laneA", 2000);
+    enter("na1", 2500);
+    // "and screenshots each one"
+    draw("a1", 4200, 300);
+    for (let i = 0; i < frames.length; i++) pop(frames[i], 4500 + i * 260, 300);
+    // "and the frames and the voice are encoded into an MP4"
+    draw("a2", 8200, 300);
+    enter("na3", 8400);
+    draw("a3", 9600, 300);
+    pop("na4", 9900);
+
+    // "To make a page like this one, nothing is recorded"
+    draw("fb", 11500, 500);
+    enter("laneB", 11800);
+    // "The scene pages are shipped as they are, next to the narration"
+    enter("nb1", 16600);
+    // "and the audio player becomes the clock"
+    draw("b1", 18300, 250);
+    enter("nb2", 18400);
+    draw("b2", 19000, 250);
+    enter("nb3", 19100);
+    draw("b3", 19600, 250);
+    pop("nb4", 19700);
+    enter("here", 20200);
+  };
+
+  window.render();
+})();
+</script>
+</body>
+</html>

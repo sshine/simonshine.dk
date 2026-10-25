@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet" href="../lib/scene.css">
+<script src="../lib/clock.js"></script>
+<meta charset="utf-8">
+<title>Pages that are a function of time</title>
+<script src="../lib/anim.js"></script>
+<style>
+  /* A scene within the scene, run on its own clock tau. */
+  #mini { position: absolute; left: 96px; top: 330px; width: 820px; height: 461px;
+          border: 2px solid var(--ink); background: var(--bg); overflow: hidden; }
+  #mini .mt { position: absolute; left: 40px; top: 34px; font-size: 44px; font-weight: 700; }
+  #mini .track { position: absolute; left: 60px; right: 60px; top: 250px; height: 2px;
+                 background: var(--panel-border); }
+  #mini .tick { position: absolute; top: 270px; font-family: var(--mono); font-size: 20px;
+                color: var(--muted); transform: translateX(-50%); }
+  #dot { position: absolute; top: 226px; width: 50px; height: 50px; border-radius: 50%;
+         background: var(--accent); margin-left: -25px; }
+  #done { position: absolute; right: 40px; bottom: 40px; font-size: 32px; }
+  #tau { position: absolute; left: 96px; top: 830px; font-family: var(--mono); font-size: 40px; }
+  #tau b { color: var(--accent); font-weight: 400; }
+  #code { left: 1000px; top: 330px; width: 824px; }
+  #code .fbody { white-space: pre; font-size: 27px; }
+  .k { color: var(--term-accent); }
+  .v { color: var(--term-value); }
+  #nope { position: absolute; left: 1000px; top: 720px; }
+  #nope .chip { font-family: var(--mono); font-size: 30px; border: 1px solid var(--danger);
+                color: var(--danger); background: var(--bg); border-radius: 0; }
+  #nope .n { font-size: 30px; color: var(--muted); margin-top: 14px; }
+  #strike { position: absolute; left: -6px; right: -6px; top: 50%; height: 3px;
+            background: var(--danger); transform-origin: left; }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="header hidden0" id="hdr">
+    <div class="kicker">explainer · 4/7</div>
+    <div class="title">Pages that are a function of time</div>
+    <div class="rule"></div>
+  </div>
+
+  <div id="mini" class="hidden0">
+    <div class="mt" id="mt">A scene</div>
+    <div class="track"></div>
+    <div class="tick" style="left:60px">0s</div>
+    <div class="tick" style="left:410px">3s</div>
+    <div class="tick" style="left:760px">6s</div>
+    <div id="dot"></div>
+    <div id="done" class="chip tag">done</div>
+  </div>
+  <div id="tau" class="hidden0">t = <b id="tauv">0.0</b> s</div>
+
+  <div class="codefile hidden0" id="code">
+    <div class="fhead">scenes/a-scene.html</div>
+    <div class="fbody">window.<span class="k">render</span> = () =&gt; {
+  enter(<span class="v">"title"</span>, 300);
+  slide(<span class="v">"dot"</span>, 0, 6000);
+  pop(<span class="v">"done"</span>, 4500);
+};
+<span class="out" style="color: var(--term-muted)">// T is set from outside, then render()</span></div>
+  </div>
+
+  <div id="nope" class="hidden0">
+    <span class="chip" style="position: relative">setInterval(…)<span id="strike"></span></span>
+    <div class="n">No timer of its own. No state between calls.</div>
+  </div>
+
+  <div class="caption hidden0" id="cap">One rule makes a page <b>recordable</b> and <b>playable</b>.</div>
+
+</div>
+
+<script>
+(function () {
+  const mt = document.getElementById("mt");
+  const dot = document.getElementById("dot");
+  const done = document.getElementById("done");
+  const tauv = document.getElementById("tauv");
+  const strike = document.getElementById("strike");
+
+  // The miniature is drawn from tau alone, the way every real scene is drawn from T.
+  function mini(tau) {
+    mt.style.opacity = clamp((tau - 0.3) / 0.6, 0, 1);
+    dot.style.left = `${60 + 700 * clamp(tau / 6, 0, 1)}px`;
+    const u = clamp((tau - 4.5) / 0.5, 0, 1);
+    done.style.opacity = u;
+    done.style.transform = `scale(${0.86 + 0.14 * u})`;
+    tauv.textContent = tau.toFixed(1);
+  }
+
+  window.render = function render() {
+    enter("hdr", 300);
+    // "Each scene is a web page"
+    enter("mini", 900);
+    enter("tau", 900);
+    // "It is a pure function of time"
+    enter("code", 3300);
+
+    // "Ask it for second four, and it draws second four"
+    // "Ask for second two, and it draws second two"
+    const tau = lerp(lerp(0, 4, seg(5300, 6600)), 2, seg(8400, 9200));
+    mini(tau);
+
+    // "It never keeps a timer of its own"
+    enter("nope", 11000);
+    strike.style.transform = `scaleX(${seg(11800, 12300)})`;
+
+    // "That one rule makes a page both recordable and playable"
+    fadeIn("cap", 13200);
+  };
+
+  window.render();
+})();
+</script>
+</body>
+</html>

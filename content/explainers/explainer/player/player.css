@@ -1,0 +1,187 @@
+/* player.css — the explainer player, made to sit inside someone else's page.
+ *
+ * It inherits font and colour from wherever it is placed and takes its few
+ * colours of its own from these variables, so a host site restyles it by
+ * setting them on .explainer rather than by overriding selectors. */
+
+.explainer {
+  --explainer-accent: currentColor;
+  --explainer-rule: color-mix(in srgb, currentColor 25%, transparent);
+  --explainer-track: color-mix(in srgb, currentColor 12%, transparent);
+  --explainer-mark: color-mix(in srgb, currentColor 10%, transparent);
+  --explainer-frame: #000;
+  margin: 1.5em 0;
+}
+
+.explainer-player {
+  position: relative;
+  outline: none;
+}
+
+.explainer-stage {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--explainer-frame);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Every scene is loaded up front so a chapter change is a cut, not a load. */
+.explainer-scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.explainer-scene.is-current {
+  visibility: visible;
+}
+
+.explainer-start {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 1.1em 0.5em 0.8em;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.explainer-start svg {
+  width: 1.6em;
+  height: 1.6em;
+}
+
+.explainer-start:hover,
+.explainer-start:focus-visible {
+  background: rgba(0, 0, 0, 0.88);
+}
+
+.explainer-controls {
+  font-size: 0.85em;
+}
+
+.explainer-bar {
+  position: relative;
+  height: 0.5em;
+  margin: 0.5em 0 0.3em;
+  background: var(--explainer-track);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.explainer-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: var(--explainer-accent);
+  pointer-events: none;
+}
+
+.explainer-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--explainer-rule);
+  pointer-events: none;
+}
+
+.explainer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  min-width: 0;
+}
+
+.explainer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 2em;
+  padding: 0.3em;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.explainer-btn svg {
+  width: 100%;
+  height: 100%;
+}
+
+.explainer-btn:hover {
+  color: var(--explainer-accent);
+}
+
+.explainer-time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  margin-left: 0.3em;
+}
+
+.explainer-now {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.75;
+  margin-left: 0.6em;
+}
+
+.explainer-full {
+  margin-left: auto;
+}
+
+.explainer-player:fullscreen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #000;
+  color: #fff;
+  padding: 0 2vw 1vh;
+}
+
+.explainer-player:fullscreen .explainer-stage {
+  width: min(100%, calc((100vh - 5em) * var(--explainer-aspect, 16 / 9)));
+  margin: 0 auto;
+}
+
+.explainer-transcript [data-at] {
+  cursor: pointer;
+}
+
+.explainer-cue.is-current {
+  background: var(--explainer-mark);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.explainer-failed .explainer-player {
+  display: none;
+}
+
+@media print {
+  .explainer-player {
+    display: none;
+  }
+}

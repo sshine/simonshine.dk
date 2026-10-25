@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet" href="../lib/scene.css">
+<script src="../lib/clock.js"></script>
+<meta charset="utf-8">
+<title>A page you can pause</title>
+<script src="../lib/anim.js"></script>
+<style>
+  #player { position: absolute; left: 96px; top: 290px; width: 900px; }
+  #screen { height: 300px; border-top: 1.5px solid var(--panel-border);
+            border-bottom: 1.5px solid var(--panel-border); background: var(--bg); position: relative; }
+  #screen .ph { position: absolute; background: var(--panel); }
+  #bar { position: relative; height: 12px; margin-top: 18px; background: var(--term-bg); }
+  #fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); }
+  .tk { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--muted); }
+  #row { display: flex; align-items: center; gap: 22px; margin-top: 12px; font-size: 28px; }
+  #row svg { width: 40px; height: 40px; color: var(--accent); }
+  #time { font-variant-numeric: tabular-nums; }
+  #back { position: absolute; top: -48px; font-family: var(--mono); font-size: 24px;
+          color: var(--accent2); transform: translateX(-50%); white-space: nowrap; }
+  #ts { position: absolute; left: 1080px; top: 290px; width: 744px; font-size: 30px; line-height: 1.5; }
+  #ts h4 { font-size: 32px; margin-bottom: 10px; color: var(--accent); }
+  #ts .cur { background: var(--term-bg); }
+  .pair { position: absolute; top: 760px; display: flex; align-items: center; gap: 18px; }
+  .sw { width: 92px; height: 92px; border: 1.5px solid var(--panel-border);
+        display: flex; align-items: center; justify-content: center; font-size: 50px; }
+  .arrow { font-size: 40px; color: var(--muted); }
+  .pl { position: absolute; top: 870px; font-family: var(--mono); font-size: 22px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="header hidden0" id="hdr">
+    <div class="kicker">explainer · 6/7</div>
+    <div class="title">A page you can pause</div>
+    <div class="rule"></div>
+  </div>
+
+  <div id="player" class="hidden0">
+    <div id="screen">
+      <div class="ph" style="left:40px; top:40px; width:380px; height:44px"></div>
+      <div class="ph" style="left:40px; top:120px; width:260px; height:140px"></div>
+      <div class="ph" style="left:340px; top:120px; width:520px; height:140px"></div>
+    </div>
+    <div id="bar">
+      <div id="fill"></div>
+      <div class="tk" style="left:9%"></div><div class="tk" style="left:27%"></div>
+      <div class="tk" style="left:44%"></div><div class="tk" style="left:60%"></div>
+      <div class="tk" style="left:79%"></div><div class="tk" style="left:95%"></div>
+      <div id="back" class="hidden0">← one sentence back</div>
+    </div>
+    <div id="row">
+      <span id="btn"></span>
+      <span id="time">1:29 / 1:53</span>
+      <span style="color: var(--muted)">A page you can pause</span>
+    </div>
+  </div>
+
+  <div id="ts" class="hidden0">
+    <h4>Transcript</h4>
+    <span>Because the clock is yours, you can pause on any frame.</span>
+    <span id="hl">Skip back to the sentence you missed,</span>
+    <span>or jump to a chapter from here.</span>
+  </div>
+
+  <div class="pair hidden0" id="p1" style="left:96px">
+    <div class="sw" style="background:#f5f0e8"></div><span class="arrow">→</span>
+    <div class="sw" style="background:#fff"></div>
+  </div>
+  <div class="pl hidden0" id="l1" style="left:96px">cream → paper</div>
+  <div class="pair hidden0" id="p2" style="left:700px">
+    <div class="sw" style="background:#3a6ea5"></div><span class="arrow">→</span>
+    <div class="sw" style="background:#0000cc"></div>
+  </div>
+  <div class="pl hidden0" id="l2" style="left:700px">blue → link blue</div>
+  <div class="pair hidden0" id="p3" style="left:1304px">
+    <div class="sw" style="font-family: Inter, system-ui, sans-serif">Aa</div><span class="arrow">→</span>
+    <div class="sw" style="font-family: Georgia, serif">Aa</div>
+  </div>
+  <div class="pl hidden0" id="l3" style="left:1304px">sans → Georgia</div>
+
+</div>
+
+<script>
+(function () {
+  const PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>';
+  const PAUSE = '<svg viewBox="0 0 24 24"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z" fill="currentColor"/></svg>';
+  const btn = document.getElementById("btn");
+  const fill = document.getElementById("fill");
+  const time = document.getElementById("time");
+  const back = document.getElementById("back");
+  const hl = document.getElementById("hl");
+  const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+  window.render = function render() {
+    enter("hdr", 300);
+    enter("player", 700);
+
+    // Playing, then paused on "pause on any frame", then back one sentence.
+    const paused = T >= 2600 && T < 4600;
+    btn.innerHTML = paused || T < 1200 ? PLAY : PAUSE;
+    let at = 89 + Math.max(0, Math.min(T, 2600) - 1200) / 1000;
+    at -= 9 * seg(4600, 5100);
+    at += Math.max(0, T - 5100) / 1000;
+    fill.style.width = `${(100 * at) / 113.8}%`;
+    time.textContent = `${clock(at)} / 1:53`;
+    back.style.left = `${(100 * 81) / 113.8}%`;
+    showWin(back, 4500, 7000);
+
+    // "or jump to a chapter from the transcript below"
+    enter("ts", 5600);
+    hl.className = T >= 5100 ? "cur" : "";
+
+    // "The page also takes on the look of the site it lives in"
+    // "These scenes are drawn in this blog's ink, paper and typeface"
+    [["p1", "l1"], ["p2", "l2"], ["p3", "l3"]].forEach(([p, l], i) => {
+      enter(p, 11900 + i * 900);
+      fadeIn(l, 12200 + i * 900);
+    });
+  };
+
+  window.render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+{
+  "title": "How an explainer is made",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "theme": "light",
+  "audio": "narration.mp3",
+  "duration": 113894,
+  "scenes": [
+    {
+      "id": "s1_title",
+      "title": "An explainer about explainers",
+      "page": "scenes/s1_title.html",
+      "start": 0,
+      "duration": 10317,
+      "cues": [
+        {
+          "at": 600,
+          "text": "This is an explainer about explainers."
+        },
+        {
+          "at": 2814,
+          "text": "An agent wrote it, a small voice model on a laptop read it aloud, and right now it is playing live in your browser."
+        }
+      ]
+    },
+    {
+      "id": "s2_manuscript",
+      "title": "It starts as a manuscript",
+      "page": "scenes/s2_manuscript.html",
+      "start": 10317,
+      "duration": 19937,
+      "cues": [
+        {
+          "at": 10467,
+          "text": "Every explainer starts as a manuscript."
+        },
+        {
+          "at": 12872,
+          "text": "One file holds the voice, the canvas, and the scenes."
+        },
+        {
+          "at": 16037,
+          "text": "Each scene carries two things:"
+        },
+        {
+          "at": 17872,
+          "text": "the words that are spoken, and a storyboard for what moves while they are spoken."
+        },
+        {
+          "at": 22872,
+          "text": "Everything else is derived from this file."
+        },
+        {
+          "at": 25467,
+          "text": "Change a sentence, and only that scene is spoken and timed again."
+        }
+      ]
+    },
+    {
+      "id": "s3_voice",
+      "title": "The voice sets the pace",
+      "page": "scenes/s3_voice.html",
+      "start": 30254,
+      "duration": 19425,
+      "cues": [
+        {
+          "at": 30404,
+          "text": "The narration is spoken by Kokoro, a speech model with eighty-two million parameters."
+        },
+        {
+          "at": 35834,
+          "text": "It runs offline, with no cloud and no keys."
+        },
+        {
+          "at": 38549,
+          "text": "Each scene becomes one audio clip, and the length of that clip decides the length of the scene."
+        },
+        {
+          "at": 44707,
+          "text": "The animation is fitted to the voice, never the other way around."
+        }
+      ]
+    },
+    {
+      "id": "s4_clock",
+      "title": "Pages that are a function of time",
+      "page": "scenes/s4_clock.html",
+      "start": 49679,
+      "duration": 17526,
+      "cues": [
+        {
+          "at": 49829,
+          "text": "Each scene is a web page, and it keeps one rule."
+        },
+        {
+          "at": 52855,
+          "text": "It is a pure function of time."
+        },
+        {
+          "at": 54762,
+          "text": "Ask it for second four, and it draws second four."
+        },
+        {
+          "at": 57854,
+          "text": "Ask for second two, and it draws second two."
+        },
+        {
+          "at": 60617,
+          "text": "It never keeps a timer of its own."
+        },
+        {
+          "at": 62787,
+          "text": "That one rule makes a page both recordable and playable."
+        }
+      ]
+    },
+    {
+      "id": "s5_fork",
+      "title": "Two ways to play the same pages",
+      "page": "scenes/s5_fork.html",
+      "start": 67205,
+      "duration": 21899,
+      "cues": [
+        {
+          "at": 67355,
+          "text": "From here, the road forks."
+        },
+        {
+          "at": 68926,
+          "text": "To make a video, a headless browser steps the clock one frame at a time and screenshots each one, and the frames and the voice are encoded into an MP4."
+        },
+        {
+          "at": 78615,
+          "text": "To make a page like this one, nothing is recorded."
+        },
+        {
+          "at": 81757,
+          "text": "The scene pages are shipped as they are, next to the narration, and the audio player becomes the clock."
+        }
+      ]
+    },
+    {
+      "id": "s6_page",
+      "title": "A page you can pause",
+      "page": "scenes/s6_page.html",
+      "start": 89104,
+      "duration": 18571,
+      "cues": [
+        {
+          "at": 89254,
+          "text": "Because the clock is yours, you can pause on any frame, skip back to the sentence you missed, or jump to a chapter from the transcript below."
+        },
+        {
+          "at": 97521,
+          "text": "The page also takes on the look of the site it lives in."
+        },
+        {
+          "at": 100840,
+          "text": "These scenes are drawn in this blog's ink, paper and typeface, not in the colours they were designed in."
+        }
+      ]
+    },
+    {
+      "id": "s7_outro",
+      "title": "One manuscript, two ways to watch",
+      "page": "scenes/s7_outro.html",
+      "start": 107675,
+      "duration": 6219,
+      "cues": [
+        {
+          "at": 107825,
+          "text": "One manuscript, one set of pages, two ways to watch."
+        },
+        {
+          "at": 111222,
+          "text": "That is the explainer skill."
+        }
+      ]
+    }
+  ],
+  "stylesheet": "../lib/theme.css"
+}

@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet" href="../lib/scene.css">
+<script src="../lib/clock.js"></script>
+<meta charset="utf-8">
+<title>The voice sets the pace</title>
+<script src="../lib/anim.js"></script>
+<style>
+  #term { left: 96px; top: 280px; width: 800px; font-size: 28px; }
+  .term .out { white-space: normal; }
+  .term .out > div { white-space: pre; }
+  #chips { position: absolute; left: 96px; top: 820px; display: flex; gap: 18px; }
+  .lane-label { position: absolute; left: 1000px; font-family: var(--mono);
+                font-size: 24px; color: var(--muted); }
+  #lab1 { top: 300px; }
+  #lab2 { top: 520px; }
+  .clip, .box { position: absolute; overflow: hidden; }
+  .clip { top: 345px; height: 120px; border: 1px solid var(--panel-border);
+          background: var(--panel); }
+  .clip svg { position: absolute; left: 0; top: 0; height: 100%; }
+  .clip rect { fill: var(--accent); }
+  .box { top: 565px; height: 150px; border: 2px solid var(--ink); background: var(--bg);
+         font-size: 30px; display: flex; align-items: center; justify-content: center; }
+  .secs { position: absolute; top: 730px; font-family: var(--mono); font-size: 20px;
+          color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="header hidden0" id="hdr">
+    <div class="kicker">explainer · 3/7</div>
+    <div class="title">The voice sets the pace</div>
+    <div class="rule"></div>
+  </div>
+
+  <div class="term hidden0" id="term">
+    <div class="titlebar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span class="tname">~/Projects/videos</span>
+    </div>
+    <div class="line" id="cmd"></div>
+    <div class="line out" id="out" style="margin-top:10px">
+      <div style="opacity:0">s1_title: <span class="val">9.5s</span></div>
+      <div style="opacity:0">s2_manuscript: <span class="val">19.1s</span></div>
+      <div style="opacity:0">s3_voice: <span class="val">18.6s</span></div>
+      <div style="opacity:0">s4_clock: <span class="val">16.7s</span></div>
+      <div style="opacity:0">s5_fork: <span class="val">21.1s</span></div>
+      <div style="opacity:0">s6_page: <span class="val">17.8s</span></div>
+      <div style="opacity:0">s7_outro: <span class="val">5.4s</span></div>
+    </div>
+  </div>
+
+  <div id="chips">
+    <span class="chip tag hidden0" id="ch1">Kokoro-82M</span>
+    <span class="chip tag hidden0" id="ch2">offline</span>
+    <span class="chip tag hidden0" id="ch3">no cloud, no keys</span>
+  </div>
+
+  <div class="lane-label hidden0" id="lab1">narration, one clip per scene</div>
+  <div class="lane-label hidden0" id="lab2">scenes, sized to their clips</div>
+  <div id="lanes"></div>
+
+  <div class="caption hidden0" id="cap">The animation is fitted to <b>the voice</b>, never the other way around.</div>
+
+</div>
+
+<script>
+(function () {
+  const CMD = [{ t: "$ ", c: "prompt" }, { t: "just audio " }, { t: "explainer", c: "flag" }];
+  document.getElementById("cmd").dataset.holdCaret = "1";
+
+  // Each clip runs its narration plus the 0.8s tail render.sh gives it.
+  const SECS = [9.5, 19.1, 18.6, 16.7, 21.1, 17.8, 5.4].map((s) => s + 0.8);
+  const X0 = 1000, X1 = 1824, GAP = 6;
+  const total = SECS.reduce((a, b) => a + b, 0);
+  const span = X1 - X0 - GAP * (SECS.length - 1);
+  const fair = span / SECS.length;
+
+  const lanes = document.getElementById("lanes");
+  const clips = [], boxes = [], secs = [];
+  let x = X0;
+  SECS.forEach((s, i) => {
+    const w = (span * s) / total;
+    const clip = document.createElement("div");
+    clip.className = "clip";
+    Object.assign(clip.style, { left: `${x}px`, width: `${w}px` });
+    // A fixed pseudo-random waveform, the same on every load.
+    let bars = "";
+    for (let b = 0, n = Math.floor(w / 7); b < n; b++) {
+      const a = 0.25 + 0.75 * Math.abs(Math.sin(b * 1.7 + i * 3.1) * Math.cos(b * 0.43 + i));
+      const hgt = 100 * a;
+      bars += `<rect x="${b * 7 + 2}" y="${60 - hgt / 2}" width="4" height="${hgt}"/>`;
+    }
+    clip.innerHTML = `<svg width="${w}" viewBox="0 0 ${w} 120">${bars}</svg>`;
+    const box = document.createElement("div");
+    box.className = "box";
+    box.textContent = String(i + 1);
+    const label = document.createElement("div");
+    label.className = "secs";
+    label.textContent = `${Math.round(s)}s`;
+    lanes.append(clip, box, label);
+    clips.push({ el: clip, w });
+    boxes.push({ el: box, x, w, fx: X0 + i * (fair + GAP) });
+    secs.push(label);
+    x += w + GAP;
+  });
+
+  window.render = function render() {
+    enter("hdr", 300);
+
+    // "The narration is spoken by Kokoro"
+    enter("term", 600);
+    const typed = typeCmd("cmd", CMD, 1200);
+    revealLines("out", typed + 500, 420);
+
+    // "It runs offline, with no cloud and no keys"
+    pop("ch1", 5500);
+    pop("ch2", 6200);
+    pop("ch3", 7000);
+
+    // "Each scene becomes one audio clip"
+    enter("lab1", 8300);
+    clips.forEach((c, i) => {
+      const u = seg(8500 + i * 230, 8900 + i * 230);
+      c.el.style.opacity = u > 0 ? 1 : 0;
+      c.el.style.clipPath = `inset(0 ${(1 - u) * 100}% 0 0)`;
+    });
+
+    // "and the length of that clip decides the length of the scene"
+    enter("lab2", 10600);
+    const snap = seg(12000, 13300);
+    boxes.forEach((b, i) => {
+      const u = seg(10800 + i * 120, 11300 + i * 120);
+      Object.assign(b.el.style, {
+        opacity: u,
+        left: `${lerp(b.fx, b.x, snap)}px`,
+        width: `${lerp(fair, b.w, snap)}px`,
+      });
+      Object.assign(secs[i].style, {
+        opacity: seg(13300, 13800),
+        left: `${b.x}px`,
+        width: `${b.w}px`,
+      });
+    });
+
+    // "The animation is fitted to the voice"
+    fadeIn("cap", 14500);
+  };
+
+  window.render();
+})();
+</script>
+</body>
+</html>

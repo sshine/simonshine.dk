@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet" href="../lib/scene.css">
+<script src="../lib/clock.js"></script>
+<meta charset="utf-8">
+<title>It starts as a manuscript</title>
+<script src="../lib/anim.js"></script>
+<style>
+  #file { left: 96px; top: 290px; width: 1090px; }
+  #file .fbody { white-space: pre; font-size: 26px; line-height: 1.6; }
+  .k { color: var(--term-accent); }
+  .v { color: var(--term-value); }
+  .ln { display: block; padding: 0 8px; margin: 0 -8px; }
+  .ln.lit { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .note { position: absolute; width: 520px; }
+  .note .h { font-family: var(--mono); font-size: 28px; color: var(--accent); }
+  .note .n { font-size: 30px; color: var(--muted); margin-top: 10px; line-height: 1.4; }
+  #spoken { left: 1300px; top: 470px; }
+  #animated { left: 1300px; top: 640px; }
+  #change { left: 1300px; top: 300px; }
+  #change .h { color: var(--accent2); }
+  #strike { position: absolute; height: 3px; background: var(--accent2); }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div class="header hidden0" id="hdr">
+    <div class="kicker">explainer · 2/7</div>
+    <div class="title">It starts as a manuscript</div>
+    <div class="rule"></div>
+  </div>
+
+  <div class="codefile hidden0" id="file">
+    <div class="fhead">script.json</div>
+    <div class="fbody"><span class="ln" id="l1">{ <span class="k">"meta"</span>: { <span class="k">"voice"</span>: <span class="v">"af_heart"</span>, <span class="k">"canvas"</span>: [1920, 1080] },</span><span class="ln">  <span class="k">"scenes"</span>: [</span><span class="ln">    { <span class="k">"id"</span>: <span class="v">"s2_manuscript"</span>,</span><span class="ln" id="l4">      <span class="k">"narration"</span>: <span class="v">"Every explainer starts as a</span></span><span class="ln" id="l5"><span class="v">        manuscript. One file holds …"</span>,</span><span class="ln" id="l6">      <span class="k">"visual"</span>: <span class="v">"A code panel on the left,</span></span><span class="ln" id="l7"><span class="v">        with one scene object. …"</span> },</span><span class="ln">    …</span><span class="ln">  ] }</span></div>
+  </div>
+
+  <div id="strike" class="hidden0"></div>
+
+  <svg class="wires">
+    <path id="w1" class="wire accent" d="M1192 548 C 1230 548, 1230 500, 1288 500"/>
+    <path id="w2" class="wire accent" d="M1192 645 C 1230 645, 1230 670, 1288 670"/>
+  </svg>
+
+  <div id="spoken" class="note hidden0">
+    <div class="h">spoken</div>
+    <div class="n">Kokoro reads the narration, one clip per scene.</div>
+  </div>
+  <div id="animated" class="note hidden0">
+    <div class="h">animated</div>
+    <div class="n">A scene page realizes the storyboard, beat by beat.</div>
+  </div>
+  <div id="change" class="note hidden0">
+    <div class="h">edit one sentence</div>
+    <div class="n">Only that scene is spoken and timed again.</div>
+  </div>
+
+  <div class="caption hidden0" id="cap">One file. <b>Everything else is derived.</b></div>
+
+</div>
+
+<script>
+(function () {
+  const lit = (id, t0, t1) => document.getElementById(id).classList.toggle("lit", T >= t0 && T < t1);
+  const strike = document.getElementById("strike");
+
+  window.render = function render() {
+    enter("hdr", 300);
+    // "Every explainer starts as a manuscript"
+    enter("file", 900);
+
+    // "One file holds the voice, the canvas, and the scenes"
+    lit("l1", 2700, 5700);
+
+    // "the words that are spoken"
+    lit("l4", 7550, 99999);
+    lit("l5", 7550, 99999);
+    draw("w1", 7700, 500);
+    enter("spoken", 8000);
+
+    // "and a storyboard for what moves while they are spoken"
+    lit("l6", 9600, 99999);
+    lit("l7", 9600, 99999);
+    draw("w2", 9700, 500);
+    enter("animated", 10000);
+
+    // "Everything else is derived from this file"
+    fadeIn("cap", 12600);
+
+    // "Change a sentence, and only that scene is spoken and timed again"
+    const u = seg(15300, 16100);
+    Object.assign(strike.style, {
+      left: "432px", top: "557px", width: `${u * 225}px`, opacity: u > 0 ? 1 : 0,
+    });
+    enter("change", 16200);
+  };
+
+  window.render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+<link rel="stylesheet" href="../lib/scene.css">
+<script src="../lib/clock.js"></script>
+<meta charset="utf-8">
+<title>An explainer about explainers</title>
+<script src="../lib/anim.js"></script>
+<style>
+  #kicker { position: absolute; left: 160px; top: 300px; font-size: 34px; }
+  #title { position: absolute; left: 160px; top: 350px; width: 1600px;
+           font-size: 124px; font-weight: 700; line-height: 1.05; letter-spacing: -1px; }
+  .credit { position: absolute; top: 600px; width: 500px; }
+  .credit .n { font-family: var(--mono); font-size: 24px; color: var(--accent); }
+  .credit .t { font-size: 40px; line-height: 1.25; margin-top: 10px; }
+  .credit .s { font-size: 28px; color: var(--muted); margin-top: 8px; font-style: italic; }
+  #c1 { left: 160px; }
+  #c2 { left: 710px; }
+  #c3 { left: 1260px; }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <div id="kicker" class="kicker hidden0">explainer · 1/7</div>
+  <div id="title" class="hidden0">An explainer about explainers</div>
+  <svg class="wires"><path id="rule" class="wire" d="M160 540 L 1760 540" style="stroke: var(--ink); stroke-width: 4"/></svg>
+
+  <div id="c1" class="credit hidden0">
+    <div class="n">written</div>
+    <div class="t">by an agent</div>
+    <div class="s">from one manuscript</div>
+  </div>
+  <div id="c2" class="credit hidden0">
+    <div class="n">read aloud</div>
+    <div class="t">by Kokoro, on a laptop</div>
+    <div class="s">a local voice model</div>
+  </div>
+  <div id="c3" class="credit hidden0">
+    <div class="n">playing</div>
+    <div class="t">live, in your browser</div>
+    <div class="s">nothing was recorded</div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  window.render = function render() {
+    enter("kicker", 200);
+    enter("title", 450);
+    draw("rule", 1300, 900);
+
+    // "An agent wrote it"
+    enter("c1", 3200);
+    // "a small voice model on a laptop read it aloud"
+    enter("c2", 4600);
+    // "and right now it is playing live in your browser"
+    enter("c3", 7600);
+  };
+
+  window.render();
+})();
+</script>
+</body>
+</html>
