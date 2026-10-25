@@ -64,7 +64,8 @@ specialArgs = {
 };
 ```
 
-The first deploy fetched the chart with `kubenix.lib.helm.fetch` and a `sha256`. Now it is a path.
+The first deploy fetched the chart with `kubenix.lib.helm.fetch` and a `sha256`, and now it is a
+path.
 
 ## Values are Nix
 
@@ -148,8 +149,8 @@ forgejo = [
 ## No client secret in git
 
 Users log in through Keycloak. The first deploy created the OIDC client with `curl` against the
-Keycloak admin API and kept the client secret in an inline `Secret` in `forgejo.nix`. That was the
-wrong call, and it was the first thing to go.
+Keycloak admin API and kept the client secret in an inline `Secret` in `forgejo.nix`, which was the
+first thing I replaced.
 
 Now a Job generates the secret in-cluster, sets it on the Keycloak client, and writes it to Vault.
 The builder lives in `lib/oauth-bootstrap.nix` and every service that logs in through Keycloak
@@ -194,7 +195,7 @@ kubernetes.resources.vaultstaticsecrets.forgejo-oauth-keycloak = {
 The machinery behind that Job, and the way its idempotency check can rotate a secret out from
 under a running pod, is in [A Vault Job](/articles/a-vault-job).
 
-## Twenty-nine runners, none of them running
+## 29 dead runners
 
 Forgejo Actions ran on a `forgejo-runner` Deployment with three replicas and docker-in-docker as a
 sidecar. Each pod registered itself on start:
@@ -211,16 +212,16 @@ forgejo-runner -c /config.yaml daemon
 ```
 
 `.runner` holds the runner's identity, and `/data` was an `emptyDir`. Every replaced pod lost it,
-registered a new runner, and left the old row behind for good. Three dead rows per rollout, 29 in
-the table today, ids 1 to 29.
+registered a new runner, and left the old row behind for good. That is three dead rows per rollout,
+and 29 in the table today.
 
 `forgejo forgejo-cli actions register` takes a fixed secret and is idempotent on it, so a replaced
 pod re-attaches to its existing row. The runner that replaced dind registers that way, and it is one
 row, id 30, across three replicas. The dind Deployment is still in `forgejo.nix` at `replicas = 0`
-as the rollback. The new runner has a post of its own, "Evaluating the Kubernetes-native Forgejo CI
-runners".
+as the rollback. The new runner has a post of its own, [Evaluating the Kubernetes-native Forgejo CI
+runners](/articles/evaluating-the-kubernetes-native-forgejo-ci-runners).
 
-## Sixteen gigabytes of tarballs
+## Crawler attack: 16GiB tarballs
 
 On 2 October the site answered with Envoy's `upstream connect error`. The pod had crashlooped 446
 times on `no space left on device`. The 20Gi volume was full, and `/data/repo-archive` for one
@@ -233,9 +234,9 @@ generating each archive anyway, so most of the 16.2G was written for nobody.
 
 Forgejo's `archive_cleanup` cron defaults to daily, and a full disk keeps it from running.
 
-The first fix had three steps. Delete the archives and the 1688 `repo_archiver` rows that pointed at
-them, including 206 left mid-generation, so Forgejo does not advertise files that are gone. Restart.
-Then grow the volume:
+The first fix was to delete the archives and the 1688 `repo_archiver` rows that pointed at them,
+including 206 left mid-generation, so Forgejo would not advertise files that are gone, then restart
+it and grow the volume:
 
 ```diff
          persistence = {
@@ -243,7 +244,7 @@ Then grow the volume:
 +          size = "40Gi";
 ```
 
-I expected the Hetzner CSI driver to grow the filesystem online. It did not. The claim sat in
+I expected the Hetzner CSI driver to grow the filesystem online, but it didn't; the claim sat in
 `FileSystemResizePending` until the pod restarted.
 
 The next day archives were pruned hourly, and the day after they were gone:
@@ -262,8 +263,8 @@ repository = {
 Nobody here downloads source tarballs. The setting rejects GET and POST on the whole `/archive`
 route group, so a request never reaches the generator.
 
-In between, the crawler came back. The disk held at 10%, and the pod was OOMKilled 26 times at a
-1Gi limit instead. One archive measured about 80 MB of memory, and Forgejo generates them one at a
+In between, the crawler came back. The disk held at 10%, but the pod was OOMKilled 26 times at a
+1Gi limit. One archive measured about 80 MB of memory, and Forgejo generates them one at a
 time, so archives alone did not explain it. Every page view forks git inside the same cgroup:
 
 ```diff
@@ -279,8 +280,8 @@ On 18 October I asked why CI for an unrelated project had failed on every run si
 Running the same workflows locally on the same commit passed.
 
 The runner logs said `unable to send final job logs and status: All attempts fail`, nine 503s and a
-504. The jobs had passed. The runner could not report it, and a run whose report never arrives is
-recorded as a failure.
+504. The jobs had passed, but the runner could not report it, and a run whose report never arrives
+is recorded as a failure.
 
 A crawler was back on the same repository, on a different set of pages. `blame`, `commit`,
 `commits` and `src` each fork git and walk history, and at the gateway they took 3.5 to 7.5 seconds
@@ -289,7 +290,7 @@ apiece. One sampled window had 408 requests in 24 seconds, peaking at 34 a secon
 API is served by the same process.
 
 Forgejo's default `robots.txt` already disallows `/*/*/src/`, and the crawler requested it 104
-times in those 24 seconds. So the limit sits in [Envoy Gateway][eg]:
+times in those 24 seconds, so the limit sits in [Envoy Gateway][eg]:
 
 [eg]: https://gateway.envoyproxy.io/docs/tasks/traffic/local-rate-limit/
 
@@ -330,7 +331,7 @@ two orders of magnitude above a person browsing and one under what took the inst
 
 The limit is per path, not per client. The Hetzner load balancer sends no PROXY protocol, so every
 request arrives with a node or pod address in `x-forwarded-for`, and the bucket is shared. A reader
-can be refused while a crawl runs. I prefer that to an instance that falls over.
+can be refused while a crawl runs, which I prefer to an instance that falls over.
 
 What the test protects is that the pattern never catches a clone or a runner:
 
@@ -349,8 +350,8 @@ What the test protects is that the pattern never catches a clone or a runner:
 ## Volumes only grow
 
 The cluster was three control planes, three workers and a load balancer across hel1, fsn1 and nbg1,
-and it is shrinking toward one location. Forgejo's volume was 40Gi holding 5.5G, and a Hetzner
-volume cannot shrink. Shrinking means a new claim and a copy.
+and it is shrinking toward one location. Forgejo's volume was 40Gi holding 5.5G, and since a
+Hetzner volume cannot shrink, shrinking means a new claim and a copy.
 
 On the evening of 18 October:
 
