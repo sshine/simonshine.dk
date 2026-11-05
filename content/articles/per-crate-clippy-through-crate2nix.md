@@ -201,3 +201,32 @@ to see the status survive the `tee` the runner pipes through:
 > assertion `left == right` failed: planted
 error: Cannot build '/nix/store/c8xdqrgr5x96vafgaza1g2hrwh9bdsc6-run-tests-rust_qr-photos-0.1.1.drv'.
 ```
+
+**Note 2026-10-31:** Generated files need excluding from every tool that walks the tree, not
+just from the formatter. `Cargo.nix` is crate2nix output and is the case that caught me: adding
+it to `treefmt`'s `global.excludes` keeps it out of a tree walk, but the pre-commit hook hands
+`treefmt` the staged paths explicitly, and explicit paths bypass that exclusion, so the
+formatter rewrote the file anyway. `deadnix --fail` then read the generated `crateConfig`
+lambda as unused pattern names and failed the pre-push hook, and `crate2nix-check` reported the
+formatted file as out of step with what `crate2nix generate` produces.
+
+Each step that receives the file list has to repeat the exclusion:
+
+```nix
+# nix/hooks.nix
+dendritic-base.hooks.steps = {
+  "pre-commit".treefmt = lib.mkForce {
+    check = "${treefmt} --fail-on-change --no-cache --excludes Cargo.nix {{files}}";
+    fix = "${treefmt} --excludes Cargo.nix {{files}}";
+  };
+
+  "pre-push".deadnix = lib.mkForce {
+    glob = "*.nix";
+    check = "${lib.getExe pkgs.deadnix} --fail --exclude Cargo.nix {{files}}";
+  };
+};
+```
+
+`treefmt --excludes` and `deadnix --exclude` are the same exclusion expressed for each tool.
+`nix/treefmt.nix` still carries the `global.excludes` entry for the tree walk that
+`nix flake check` uses; the hook overrides cover the path where hk passes files in by hand.
