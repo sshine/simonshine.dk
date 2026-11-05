@@ -5,34 +5,41 @@ title = 'A gateway instead of a load balancer'
 tags = ['kubernetes', 'nix', 'forgejo']
 +++
 
-The load balancer cost EUR 7.99 a month and carried five services: 80, 443, 22, 6443 and 50000.
-There was no room for a sixth, and no way to make it preserve the client address without a manual
-change in Hetzner's console.
+When running Kubernetes via Talos Linux on Hetzner VMs, I wanted to hide my nodes on a virtual
+network so that they're not directly accessible from the public. This means routing relevant traffic
+to and from them. Traffic out is routed via a NAT gateway that I provision, and traffic in is routed
+via a Hetzner LB11 load balancer.
 
-It was the only public ingress on a cluster whose nodes have no public IPs. Every node sent its
-default route to a small NAT VM. The load balancer was the other public address: TCP passthrough in
-front of the node ports.
+After the hardware price hikes of 2026, I no longer wanted to run a highly available cluster with 3
+control-plane nodes and 3 worker nodes; I cut down a lot of the hardware and I deprovisioned various
+services I had toyed around with but played no critical role in the applications I was running.
 
-Three control planes and three workers became three nodes: one control plane that also runs
-workloads, and two workers. It is not highly available, and it is not homogeneous. The load balancer
-was a leftover from the larger shape.
+The architecture before:
+- 3x CX33 (4 vCPU, 8 GB RAM): highly available control-plane across 3 regions
+- 3x CX33 (4 vCPU, 8 GB RAM): worker nodes across those same regions
+- 1x CPX22 (2 vCPU, 4 GB RAM): NAT gateway
+- 2x LB11 load balancers: One for 22, 80, 443, and one for 6443 and 50000
+
+The architecture was now:
+- 3x CX33 (4 vCPU, 8 GB RAM): one hybrid control-plane + worker node, and two dedicated worker nodes
+- 1x CPX22 (2 vCPU, 4 GB RAM): NAT gateway
+- 1x LB11 load balancer for 20, 80, 443, 6443 and 5000
 
 ## tl;dr
 
-- A EUR 7.99/month LB11 with a five-service ceiling was the only public ingress on a VPC whose
-  nodes have no public IPs.
-- I turned the egress NAT VM into the ingress gateway with NixOS, `nixos-anywhere` and a snapshot.
-- The gateway DNATs 80, 443 and 22 to the Envoy NodePorts on the proxy's worker, and 6443 and
-  50000 to a Talos HCloud VIP.
-- Zero downtime came from adding the gateway path first, testing by name, then moving DNS.
-- A Talos VIP is an alias IP, not a Node IP. NodePorts do not answer on it; host-network listeners
-  do. That is why the web and API paths use different targets.
+- I redeployed the CPX22 gateway as a NixOS machine using [nixos-anywhere and disko][nixos-anywhere]
+- I killed the LB11 load balancer and repurposed the CPX22 as a ingress/egress gateway
+- I relied on Hetzner snapshots before each redeployment of the CPX22 (for the exercise)
+- This saves me €7.99/mo. 
+- The gateway DNATs ports 80, 443 and 22 to the Envoy NodePorts on the proxy's worker
+- It DNATs ports 6443 and 50000 to a Talos HCloud VIP
+- Migrating ingress from the LB11 to the CPX22 came with zero downtime
 
-## The shape of the cluster
+[nixos-anywhere]: /articles/nixos-anywhere-on-hetzner/
+
+## Hetzner VPCs
 
 The cluster runs on a Hetzner Cloud network, `10.0.0.0/16`. The nodes have only private addresses.
-Outbound traffic goes through the network gateway to a NAT VM; inbound traffic came through the
-load balancer. It had a public IPv4 and IPv6 and a private address on the same network.
 
 It was an `lb11`: five services, twenty-five targets. The five were the cluster's whole public
 surface: 80, 443 and 22 to the Envoy NodePorts, 6443 and 50000 to the control plane. It had no
