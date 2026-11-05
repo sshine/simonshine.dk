@@ -1,0 +1,247 @@
++++
+date = '2026-11-05T15:03:58+01:00'
+draft = true
+title = 'nix-appimage: When musl is not enough'
+tags = ['nix', 'rust']
++++
+
+The static musl recipe from [A poor man's Nix binary cache][pmnbc] works because a CLI's runtime is
+glibc plus a few libraries. Programs that depend on GTK or similar large, complicated libraries
+don't compile well to static binaries.
+
+[pmnbc]: /articles/poor-mans-nix-binary-cache/
+
+[glimt][glimt] is such a program. Its binary is a thin wrapper around GTK and Wayland. The program
+is tiny; the problem is everything the loader pulls in and everything GTK opens after it starts:
+
+[glimt]: https://github.com/sshine/glimt
+
+```console
+$ readelf -d .glimt-wrapped | grep NEEDED
+ 0x0001 (NEEDED) Shared library: [libgtk4-layer-shell.so.0]
+ 0x0001 (NEEDED) Shared library: [libgtk-4.so.1]
+ 0x0001 (NEEDED) Shared library: [libgobject-2.0.so.0]
+ 0x0001 (NEEDED) Shared library: [libglib-2.0.so.0]
+ 0x0001 (NEEDED) Shared library: [libgcc_s.so.1]
+ 0x0001 (NEEDED) Shared library: [libm.so.6]
+ 0x0001 (NEEDED) Shared library: [libc.so.6]
+ 0x0001 (NEEDED) Shared library: [ld-linux-x86-64.so.2]
+```
+
+This list is even optimized by removing GStreamer, which pulls in `libgstplay-1.0.so.0`.
+
+You can rebuild GTK, glib, pango, cairo, gdk-pixbuf and fontconfig with static linking, but it
+wouldn't work out well. GTK opens gdk-pixbuf loaders and GIO modules with `dlopen` (where `dl` means
+"dynamic linking"), reads GSettings schemas from `XDG_DATA_DIRS`, and asks fontconfig for fonts. A
+static ELF contains none of those files, and the dynamic loader cannot `dlopen` a library that was
+linked into the executable.
+
+## tl;dr
+
+- A GTK dashboard has a 897 MiB runtime closure, and most of the program is data and plugins that
+  the loader and GTK open by path.
+- An AppImage keeps the dynamic links and puts the whole closure in one file: 353 MiB for the first
+  build, 110 MiB after removing GTK's GStreamer media backend, and 37 MiB after pruning the rest of
+  the closure.
+- The release still uses GitHub Releases, but this time the artifact is an AppImage rather than a
+  static tarball.
+
+## The bundle
+
+An AppImage is an ELF runtime concatenated with a [squashfs][squashfs]. The runtime mounts the
+squashfs and runs `AppRun`; the squashfs contains the program and the files it expects to find at
+absolute paths. [`nix-appimage`][nai] builds one from a Nix package:
+
+[squashfs]: https://www.kernel.org/doc/html/latest/filesystems/squashfs.html
+[nai]: https://github.com/ralismark/nix-appimage
+
+```console
+$ nix bundle --bundler github:ralismark/nix-appimage .#glimt
+$ ls -lhL glimt.AppImage
+-r-xr-xr-x 1 root root 353M Jan  1  1970 glimt.AppImage
+$ ./glimt.AppImage --version
+glimt 0.2.1
+```
+
+`nix-appimage` uses user namespaces and a chroot to make the bundled closure appear at `/nix/store`.
+That detail is what keeps the wrapper working: the wrapper sets `GDK_PIXBUF_MODULE_FILE`,
+`GIO_EXTRA_MODULES` and `XDG_DATA_DIRS` to absolute store paths, and those paths have to resolve
+inside the bundle. The executable itself stays dynamically linked.
+
+The cost is that the bundle needs user namespaces on the host, and it cannot bundle a GPU driver.
+OpenGL applications on a non-NixOS distribution may still need [nixGL][nixgl].
+
+[nixgl]: https://github.com/nix-community/nixGL
+
+![The dashboard rendered from the AppImage under a headless sway session](/img/glimt-dashboard.png)
+
+## The sizes
+
+The first AppImage was 353 MiB. `nix path-info -Sh` put the source build's runtime closure at
+897 MiB, and GTK alone accounted for 874 MiB of it.
+
+The largest branch was GStreamer. `gst-plugins-bad` has an 819 MiB closure, because GTK's media
+backend pulls in the usual collection of codecs, PipeWire, OpenAL and ffmpeg. The dashboard plays no
+media. Turning the backend off in GTK is one meson flag:
+
+```nix
+# nix/appimage.nix
+gtk4 = prev.gtk4.overrideAttrs (old: {
+  mesonFlags = (old.mesonFlags or [ ]) ++ [ "-Dmedia-gstreamer=disabled" ];
+  buildInputs = builtins.filter (
+    p: !(builtins.elem (p.pname or "") [ "gst-plugins-base" "gst-plugins-bad" ])
+  ) old.buildInputs;
+});
+```
+
+`gtk4-layer-shell` has to be rebuilt against that GTK, or its own reference drags the full GTK back
+in next to the lean one. With that done, the `gtk4` closure dropped from 874 MiB to 271 MiB, and the
+AppImage dropped to 110 MiB:
+
+```console
+$ ls -lh dist/glimt-v0.2.1-x86_64.AppImage
+-r-xr-xr-x 1 sshine users 110M Nov  4 00:56 dist/glimt-v0.2.1-x86_64.AppImage
+```
+
+The remaining closure is dominated by other branches that a calendar does not need. `tinysparql`
+(tracker) has a 167 MiB closure and feeds the file chooser's recent-file search. `cups` has a
+119 MiB closure and exists for printing. Both can be disabled with `trackerSupport = false` and
+`cupsSupport = false` if the application does not use them. The dashboard uses neither, so I
+turned them off. That brought the image to 73 MiB.
+
+## Let's get schwifty
+
+I want to see how much smaller it can get.
+
+After all, I could have just shipped an HTML page of a few kilobytes.
+
+GTK's defaults assume a desktop. The dashboard is a Wayland layer-shell client: it never searches
+recent files, prints, uses Vulkan, or serves a Broadway session. Turning those off is four flags
+on the same override:
+
+```nix
+gtk4 = prev.gtk4.override {
+  trackerSupport = false;
+  cupsSupport = false;
+  vulkanSupport = false;
+  broadwaySupport = false;
+};
+```
+
+Disabling Vulkan has one catch. nixpkgs adds `libdrm` to GTK's build inputs only when Vulkan is
+enabled, but the Wayland DMA-BUF path checks for it regardless, so a plain `vulkanSupport = false`
+fails in [meson]. Adding `libdrm` back to `buildInputs` in the `overrideAttrs` fixes it.
+
+[meson]: https://mesonbuild.com/
+
+I did not disable the X11 backend. nixpkgs builds `libepoxy` with EGL disabled when `x11Support =
+false`, and GTK's Wayland code includes `epoxy/egl.h`; making that work means patching libepoxy as
+well. The X11 libraries are a few megabytes, and not worth the coupling.
+
+The wrapper was another source of GTK. `wrapGAppsHook4` is graphical by default, which adds
+`librsvg` and `gtk3` so that SVG icons and the SVG gdk-pixbuf loader work. The dashboard draws its
+own text. Overriding the hook with `isGraphical = false` removes both:
+
+```nix
+wrapGAppsHook4 = prev.wrapGAppsHook4.override { isGraphical = false; };
+```
+
+The biggest remaining item, then, is translations. A GNOME closure ships `.mo` catalogues for every
+language for GLib, GTK, GSettings, iso-codes, XKB and gdk-pixbuf. The dashboard's own strings are
+English and the calendar has no translated UI. Perhaps I should add translations. But then again,
+I'm the only user of this piece of software. A small helper removes the catalogues from the release
+copies:
+
+```nix
+withoutLocales = package: package.overrideAttrs (old: {
+  postInstall = (old.postInstall or "") + ''
+    rm -rf "$out/share/locale"
+  '';
+});
+```
+
+Applying that to a package makes nixpkgs rebuild its dependents against the trimmed copy, but only
+if the override happens before GTK is evaluated. The release package set is therefore two
+`extend`s: the first trims data, the second overrides GTK and takes `prev.gtk4`, which now already
+points at the trimmed dependencies. `libxkbcommon` is rebuilt against the trimmed
+`xkeyboard-config` in the first pass for the same reason.
+
+GTK also carries emoji data and GObject introspection typelibs. The typelibs are for language
+bindings loading GTK at runtime, but a Rust binary using the C ABI won't. The emoji resources are
+only opened by the emoji chooser. Both go in the same `postInstall`. The GIR XML stays, because
+`gtk4-layer-shell` scans `Gtk-4.0.gir` when it generates its own introspection data.
+
+Rust emits a symbol table even in a release build with no debug info, and stdenv's default strip
+flags are `-S -p`, which remove debug sections but keep `.symtab`. The binary was 17 MiB, of which
+the symbol table was about 3 MiB. Setting `stripAllList = [ "bin" ];` on the crate makes the fixup
+phase use `--strip-all`.
+
+Finally, the squashfs was gzip-compressed by default. `nix-appimage` takes `squashfsArgs`, so
+passing xz with the x86 BCJ filter saves another several megabytes. It costs build time and a
+little startup time.
+
+```nix
+squashfsArgs = [ "-comp" "xz" "-Xbcj" "x86" "-Xdict-size" "100%" ];
+```
+
+Together, those steps took the image from 73 MiB to 37 MiB.
+
+The largest remaining entries are glibc's unused locale sources and GCC runtime sanitizers, plus
+the X11 libraries GTK still links. Removing those means post-processing the squashfs or patching
+libepoxy, and would save a few more megabytes. The current image is a tenth of the first build.
+
+## Alternatives to `nix-appimage`
+
+[`nix-bundle`][nb] makes the same single-file idea without AppImage: the executable extracts the
+closure to a temporary directory and runs it through namespaces. It starts slower and leaves the
+extraction to the first run, but it avoids the AppImage runtime.
+
+[nb]: https://github.com/matthewbauer/nix-bundle
+
+[Flatpak][fp] and [Snap][snap] are the distribution-level answers. Both give you a sandbox, an
+update channel and desktop integration, at the cost of another daemon and a build pipeline that
+knows about runtimes and manifests. For a program that already has a Nix package and a release
+workflow, an AppImage is a much smaller step.
+
+[fp]: https://flatpak.org/
+[snap]: https://snapcraft.io/
+
+A plain tarball with the libraries beside the binary is the low-tech version. `patchelf` can rewrite
+the rpath to `$ORIGIN/lib`, but that only fixes the ELF search path. GTK's data files, schemas and
+loaders still need paths, and every one of them has to be rewritten or pointed at by a wrapper. At
+that point the tarball has most of an AppImage and none of the packaging.
+
+Static linking is the option that sounds best and is the least useful here. The dashboard is a GTK
+application; the toolkit is the product, not an implementation detail that can be erased.
+
+## Releasing it
+
+The release pattern is the one from [the previous post][pmnbc]. `just dist` still builds the two
+static musl clients and their checksums, and now calls `just appimage` for the dashboard:
+
+```just
+appimage version:
+    nix build .#glimt-appimage
+    name="glimt-{{version}}-$(uname -m).AppImage"; \
+    cp -fL result "dist/$name"; \
+    ( cd dist && sha256sum "$name" > "$name.sha256" )
+```
+
+The workflow uploads the AppImage beside the tarballs:
+
+```yaml
+files: |
+  dist/*.tar.gz
+  dist/*.tar.gz.sha256
+  dist/*.AppImage
+  dist/*.AppImage.sha256
+```
+
+Consumers who want the release instead of a source build get `glimt-bin`, a `fetchurl` and a
+`makeWrapper` around the AppImage, plus the static `glimtctl-bin`. The flake omits both on systems
+with no matching artifact, the same way the CLI release does.
+
+On NixOS I kept the source build. This machine's system closure already contains `gtk4` and
+`gst-plugins-bad`, so the source-built dashboard adds about 20 MiB, while the AppImage adds 37 MiB
+and a second copy of GTK. The release is for the machines that do not have Nix, GTK or a matching
+glibc. On those, one file is the whole installation.
