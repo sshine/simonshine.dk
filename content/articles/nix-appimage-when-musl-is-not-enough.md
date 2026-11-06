@@ -41,7 +41,7 @@ linked into the executable.
 - A GTK dashboard has a 897 MiB runtime closure, and most of the program is data and plugins that
   the loader and GTK open by path.
 - An AppImage keeps the dynamic links and puts the whole closure in one file: 353 MiB for the first
-  build, 110 MiB after removing GTK's GStreamer media backend, and 37 MiB after pruning the rest of
+  build, 110 MiB after removing GTK's GStreamer media backend, and 20 MiB after pruning the rest of
   the closure.
 - The release still uses GitHub Releases, but this time the artifact is an AppImage rather than a
   static tarball.
@@ -134,9 +134,9 @@ fails in [meson]. Adding `libdrm` back to `buildInputs` in the `overrideAttrs` f
 
 [meson]: https://mesonbuild.com/
 
-I did not disable the X11 backend. nixpkgs builds `libepoxy` with EGL disabled when `x11Support =
-false`, and GTK's Wayland code includes `epoxy/egl.h`; making that work means patching libepoxy as
-well. The X11 libraries are a few megabytes, and not worth the coupling.
+I did not disable the X11 backend yet. nixpkgs builds `libepoxy` with EGL disabled when `x11Support
+= false`, and GTK's Wayland code includes `epoxy/egl.h`; making that work means patching libepoxy as
+well. The X11 libraries are a few megabytes, and the coupling looked worse than the size.
 
 The wrapper was another source of GTK. `wrapGAppsHook4` is graphical by default, which adds
 `librsvg` and `gtk3` so that SVG icons and the SVG gdk-pixbuf loader work. The dashboard draws its
@@ -186,9 +186,78 @@ squashfsArgs = [ "-comp" "xz" "-Xbcj" "x86" "-Xdict-size" "100%" ];
 
 Together, those steps took the image from 73 MiB to 37 MiB.
 
-The largest remaining entries are glibc's unused locale sources and GCC runtime sanitizers, plus
-the X11 libraries GTK still links. Removing those means post-processing the squashfs or patching
-libepoxy, and would save a few more megabytes. The current image is a tenth of the first build.
+## The squashfs pass
+
+The last pass works on the squashfs rather than on the Nix packages. `nix-appimage` packs each store
+path whole, including files the program never opens. Extracting the image, deleting those files and
+re-squashing is simpler than rebuilding glibc or GCC, and the store paths are private to the
+AppImage:
+
+```bash
+offset=$(stat -Lc%s "$runtime")
+unsquashfs -offset "$offset" -d tree glimt.AppImage
+chmod -R u+w tree
+
+find tree/nix/store -maxdepth 1 -type d -name '*-glibc-*' \
+  -exec rm -rf '{}/share/i18n' '{}/share/locale' '{}/lib/gconv' \;
+
+find tree/nix/store -maxdepth 1 -type d -name '*-gcc-*-lib' \
+  -exec sh -c 'cd "$1/lib" && find . -maxdepth 1 \
+    ! -name "libgcc_s.so*" -delete' _ {} \;
+
+find tree -type f -name '*.so*' -exec strip --strip-unneeded {} +
+
+mksquashfs tree out.AppImage -all-root -offset "$offset" \
+  -comp xz -Xbcj x86 -Xdict-size 100%
+dd if="$runtime" of=out.AppImage conv=notrunc
+```
+
+The GCC runtime keeps only `libgcc_s`; libstdc++ goes once libtiff's C++ bindings and graphite2's
+test tool are removed. glibc keeps its `C.UTF-8` locale in `lib/locale`, but the locale sources,
+translation catalogues and gconv modules go. Documentation, manual pages and GObject typelibs go
+too. Finally, every shared object is stripped of `.symtab`, which stdenv leaves behind. That took
+the image from 37 MiB to 29 MiB.
+
+## Removing X11
+
+The X11 libraries were the next branch. GTK itself can be built with `x11Support = false`, but
+nixpkgs ties several dependencies to the same switch. `libglvnd` gets a `--disable-x11` build, so
+it still provides EGL without GLX. `libepoxy` is the awkward one: nixpkgs disables EGL when X11 is
+off, but GTK's Wayland backend includes `epoxy/egl.h`. The release builds a small EGL-only libepoxy
+and points `LIBGL_PATH` at the EGL-only libglvnd.
+
+`cairo`, `pango` and `libxkbcommon` are rebuilt without X11 as well. libxkbcommon also drops its
+registry, tools and docs; the registry only pulls in libxml2 for `xkbcli`. The X11-free packages are
+passed to GTK explicitly rather than overriding cairo and pango globally, because gtk3 and gjs are
+still in the Rust toolchain's build closure and need the X11 versions.
+
+That removed the X11 branch, but on its own it was worth only a couple of megabytes. The rest came
+from dependencies that were still in the closure for other reasons.
+
+## Trimming the dependency graph
+
+The remaining dependency trims are smaller. GTK no longer gets `iso-codes`. `libtiff` is rebuilt
+without WebP, LERC, libdeflate, xz and zstd; GTK only needs the TIFF C API. `freetype` is rebuilt
+without brotli and bzip2, and `harfbuzz`, `fontconfig` and `cairo` point at that copy. A few
+RPATH-only dependencies go in the post-processing pass.
+
+The result is 20 MiB:
+
+```console
+$ ls -lh dist/glimt-v0.2.1-x86_64.AppImage
+-r-xr-xr-x 1 sshine users 20M Nov  6 04:00 dist/glimt-v0.2.1-x86_64.AppImage
+```
+
+The current image is about a seventeenth of the first build.
+
+## What's left
+
+The largest remaining pieces are `gtk4` at about 13 MiB, the Rust binary at about 14 MiB, `glibc`
+at about 6 MiB and `glib` at about 5 MiB. The toolkit and the language runtime dominate now.
+
+Further reductions need a different kind of change. LTO across the Rust workspace could shrink the
+binary, and patching GTK to drop its TIFF, JPEG and PNG loaders would remove a few more libraries.
+Both cost build time and maintenance, and neither is a flag on an existing package.
 
 ## Alternatives to `nix-appimage`
 
@@ -242,6 +311,6 @@ Consumers who want the release instead of a source build get `glimt-bin`, a `fet
 with no matching artifact, the same way the CLI release does.
 
 On NixOS I kept the source build. This machine's system closure already contains `gtk4` and
-`gst-plugins-bad`, so the source-built dashboard adds about 20 MiB, while the AppImage adds 37 MiB
+`gst-plugins-bad`, so the source-built dashboard adds about 20 MiB, while the AppImage adds 20 MiB
 and a second copy of GTK. The release is for the machines that do not have Nix, GTK or a matching
 glibc. On those, one file is the whole installation.

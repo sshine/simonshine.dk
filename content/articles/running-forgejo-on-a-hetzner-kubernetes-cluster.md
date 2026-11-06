@@ -9,8 +9,8 @@ I host my own git. Since May 2026 that has been a single [Forgejo][fj] pod on a 
 Hetzner, deployed from Nix with [kubenix][kubenix] and the upstream [forgejo-helm][fjh] chart.
 
 The first deploy was Forgejo 14.0.4 on chart 16.2.2, SQLite, and a 20Gi volume. Five months later
-it runs on Postgres, has been knocked over by crawlers three times, and sits on a smaller volume
-than it started with. Most of what changed in the deployment came from those outages.
+it runs on Postgres, has been knocked over by crawlers three times. Most of what changed in the
+deployment came from those outages.
 
 [fj]: https://forgejo.org
 [kubenix]: https://github.com/hall/kubenix
