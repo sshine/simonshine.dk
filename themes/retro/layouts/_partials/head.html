@@ -16,5 +16,8 @@
 {{ $js := resources.Get "js/turtles.js" | resources.Minify | resources.Fingerprint -}}
 <script defer src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
 
+{{ $bars := resources.Get "js/bars.js" | resources.Minify | resources.Fingerprint -}}
+<script defer src="{{ $bars.RelPermalink }}" integrity="{{ $bars.Data.Integrity }}"></script>
+
 {{ template "_internal/opengraph.html" . }}
 {{ template "_internal/twitter_cards.html" . }}

@@ -171,10 +171,31 @@ h4:hover .heading-anchor,
   color: var(--faded);
 }
 
+/* The bar images are 1200px-wide line art on transparency. The box is sized for
+   the tallest (1200x180), and `contain` keeps shorter bars at the same width
+   with their spare height as transparent padding. The JS picks one at random
+   per divider and section heading; the custom property fallback keeps the bar
+   drawn if JavaScript never runs. */
+.prose hr,
+.prose h2::before {
+  width: min(100%, 30em);
+  aspect-ratio: 20 / 3;
+  background-image: var(--bar-image, url("/img/bars/bar-tentacles.webp"));
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
 .prose hr {
   border: none;
-  border-top: 1px solid var(--rule);
-  margin: 1.3em 0;
+  height: auto;
+  margin: 2.2em auto;
+}
+
+.prose h2::before {
+  content: "";
+  display: block;
+  margin: 0 auto 0.7em;
 }
 
 .prose img {

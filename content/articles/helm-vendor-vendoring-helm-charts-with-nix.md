@@ -1,7 +1,7 @@
 +++
 date = '2026-11-06T01:29:34+02:00'
 draft = false
-title = 'helm-vendor: Vendoring Helm Charts With Nix'
+title = 'helm-vendor: Vendoring Helm charts with Nix'
 tags = ['nix', 'kubernetes', 'helm']
 +++
 
