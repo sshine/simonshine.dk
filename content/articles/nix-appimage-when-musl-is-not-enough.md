@@ -45,6 +45,9 @@ linked into the executable.
   the closure.
 - The release still uses GitHub Releases, but this time the artifact is an AppImage rather than a
   static tarball.
+- The AppImage needs unprivileged user namespaces. It runs on NixOS but fails on GitHub's Ubuntu
+  runner until `kernel.apparmor_restrict_unprivileged_userns` is off, and the Nix cache will not
+  save the expensive build if the smoke test fails.
 
 ## The bundle
 
@@ -286,14 +289,17 @@ application; the toolkit is the product, not an implementation detail that can b
 ## Releasing it
 
 The release pattern is the one from [the previous post][pmnbc]. `just dist` still builds the two
-static musl clients and their checksums, and now calls `just appimage` for the dashboard:
+static musl clients and their checksums, and now calls `just appimage` for the dashboard. The
+AppImage goes first because it is the artifact that has to run on another machine; the client is the
+part that takes longest:
 
 ```just
-appimage version:
-    nix build .#glimt-appimage
-    name="glimt-{{version}}-$(uname -m).AppImage"; \
-    cp -fL result "dist/$name"; \
-    ( cd dist && sha256sum "$name" > "$name.sha256" )
+# justfile
+dist version: (check-version version)
+    rm -rf dist && mkdir -p dist
+    just appimage {{version}}
+    just dist-client {{version}}
+    @ls -1 dist
 ```
 
 The workflow uploads the AppImage beside the tarballs:
@@ -310,9 +316,105 @@ Consumers who want the release instead of a source build get `glimt-bin`, a `fet
 `makeWrapper` around the AppImage, plus the static `glimtctl-bin`. The flake omits both on systems
 with no matching artifact, the same way the CLI release does.
 
-Going from 897 MiB to 20 MiB, the main cost is extended compilation time; going from ~38 minutes to
-... because of recompiling stripped dependencies. Fortunately, those cache as separate derivations
-in the Nix store, so applying the [nix-community/cache-nix-action][cache-nix-action] build cache,
-they probably won't change.
+## The runner is not NixOS
 
-[cache-nix-action]: https://github.com/sshine/glimt/blob/f4e2c363b0c8f4850fcb8af0fbd934e81453acf2/.github/workflows/release.yml#L24-L40
+The first release that carried the AppImage reached the smoke test and failed:
+
+```console
+$ ./dist/glimt-v0.3.0-x86_64.AppImage --version
+./dist/glimt-v0.3.0-x86_64.AppImage: cannot write uid_map: Operation not permitted
+```
+
+Exit status 127. The message comes from `nix-appimage`'s `AppRun`, not from `glimt`. The same
+wrapper runs on this NixOS machine; the v0.2.1 AppImage prints `glimt 0.2.1`. The host's
+user-namespace policy is the difference.
+
+Ubuntu 24.04 and later enable `kernel.apparmor_restrict_unprivileged_userns` by default. The
+AppArmor profile allows `unshare(CLONE_NEWUSER)` but denies the write to `/proc/self/uid_map`, which
+is what `nix-appimage` does before it mounts the bundled `/nix`. The GitHub runner image is
+`ubuntu-26.04`, so the smoke test needs the restriction off:
+
+```yaml
+# .github/workflows/release.yml
+- name: Allow unprivileged user namespaces for the AppImage
+  run: |
+    if [ -e /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
+      sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+    fi
+```
+
+That is a property of the test host, not of the artifact. A user on a default Ubuntu 24.04 install
+will see the same error. The AppImage needs an AppArmor profile that grants `userns`, or the user
+has to relax the restriction, or the bundle needs a loader that does not use user namespaces. The
+release notes should say so.
+
+## The cache that wasn't
+
+The AppImage build is dominated by the X11-free GTK closure, and that closure is the long part of
+the release. The first AppImage-only run took 55 minutes. I expected the Nix store cache to keep it.
+It did not.
+
+Two details of [cache-nix-action][cache-nix-action] explain why. Its post step is
+`post-if: success()`, so a job that fails at the smoke test never saves anything. And a cache key is
+immutable: when the primary key already exists, the action restores it and does not write the new
+store paths back. The failed release never reached its post step. A later manual run then built the
+same closure, but restored the key that the Rust CI job had already saved. The key existed, so the
+action did not write the new store paths back. The 55 minutes of derivations were still lost.
+
+[cache-nix-action]: https://github.com/sshine/glimt/blob/main/.github/workflows/release.yml
+
+The fix is to put the long build in its own job and give it its own key:
+
+```yaml
+# .github/workflows/release.yml
+appimage:
+  runs-on: ubuntu-latest
+  steps:
+    # ...
+    - uses: nix-community/cache-nix-action@...
+      with:
+        primary-key: nix-${{ runner.os }}-appimage-${{ hashFiles('**/*.nix', '**/flake.lock', '**/Cargo.lock') }}
+        restore-prefixes-first-match: |
+          nix-${{ runner.os }}-appimage-
+          nix-${{ runner.os }}-
+    - run: nix develop -c just appimage "${RELEASE_VERSION}"
+    - uses: actions/upload-artifact@...
+      with:
+        name: appimage
+        path: |
+          dist/glimt-*-x86_64.AppImage
+          dist/glimt-*-x86_64.AppImage.sha256
+```
+
+The `appimage` job succeeds as soon as the image is built, so its post step saves the closure even
+if the smoke test in the next job fails. The next release restores the AppImage cache and only
+rebuilds the parts that changed. The smoke test itself moves to a job that downloads the artifact:
+
+```yaml
+# .github/workflows/release.yml
+release:
+  needs: appimage
+  steps:
+    # ...
+    - uses: actions/download-artifact@...
+      with:
+        name: appimage
+        path: dist
+    - run: |
+        appimage="dist/glimt-${RELEASE_VERSION}-x86_64.AppImage"
+        chmod +x "$appimage"
+        "$appimage" --version
+```
+
+A manual `workflow_dispatch` can run just this path with `appimage_only=true`, so a change to the
+wrapper does not wait for the static client.
+
+The same command now prints:
+
+```console
+$ ./dist/glimt-v0.3.0-x86_64.AppImage --version
+glimt 0.3.0
+```
+
+The image did not change between the failure and the success. The host policy did; the cache key is
+what keeps the next build from paying for it again.
