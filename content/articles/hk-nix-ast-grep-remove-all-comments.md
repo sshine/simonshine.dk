@@ -9,7 +9,8 @@ Here's a git pre-commit hook for removing all comments that relies on [hk-nix][h
 
 [hk-nix-article]: /articles/git-config-based-hooks-with-hk-nix/
 
-It enforces the removal of all source code comments besides certain doc comments.
+It enforces the removal of all source code comments besides certain doc comments, plus the one YAML
+exception described below.
 
 In Rust, comments that begin with `///` or `//!`, for example.
 
@@ -121,7 +122,8 @@ A `#` in a URL and a `#` inside a `''…''` string block are not comment tokens,
 
 ### YAML
 
-Same situation as Nix: a `#` inside a quoted scalar is safe for the same reason:
+Same situation as Nix: a `#` inside a quoted scalar is safe for the same reason, so a bare rule would
+remove every real comment:
 
 ```yaml
 id: yaml-comment
@@ -130,6 +132,36 @@ rule:
   kind: comment
 fix: ""
 ```
+
+One exception for YAML comments is [hashpinner][hashpinner] annotations:
+
+```yaml
+- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, 2026-07-17
+```
+
+A bare commit digest is unreviewable. Removing the annotation makes the pin worse, and a later
+hashpinner bump writes it back. The rule keeps a comment when it follows a `uses:` mapping pair and
+has hashpinner's `tag, date` shape:
+
+```yaml
+id: yaml-comment
+language: yaml
+rule:
+  kind: comment
+  not:
+    all:
+      - follows:
+          pattern: 'uses: $X'
+          stopBy: neighbor
+      - regex: '^# (no tag|v?[0-9][^, ]*), [0-9]{4}-[0-9]{2}-[0-9]{2}$'
+fix: ""
+```
+
+Everything else is still removed, including an ordinary note on a `uses:` line.
+
+`follows` with `stopBy: neighbor` locates the position. the regex validates that it's a hashpinner annotation.
+
+[hashpinner]: https://github.com/sshine/hashpinner
 
 ### Shell, where one guard is needed
 
@@ -256,9 +288,15 @@ let
     id: yaml-comment
     language: yaml
     severity: error
-    message: no comments are allowed in YAML
+    message: only hashpinner pin comments are allowed in YAML
     rule:
       kind: comment
+      not:
+        all:
+          - follows:
+              pattern: 'uses: $X'
+              stopBy: neighbor
+          - regex: '^# (no tag|v?[0-9][^, ]*), [0-9]{4}-[0-9]{2}-[0-9]{2}$'
     fix: ""
   '';
 
