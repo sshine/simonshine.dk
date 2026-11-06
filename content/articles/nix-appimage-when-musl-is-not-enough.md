@@ -310,7 +310,9 @@ Consumers who want the release instead of a source build get `glimt-bin`, a `fet
 `makeWrapper` around the AppImage, plus the static `glimtctl-bin`. The flake omits both on systems
 with no matching artifact, the same way the CLI release does.
 
-On NixOS I kept the source build. This machine's system closure already contains `gtk4` and
-`gst-plugins-bad`, so the source-built dashboard adds about 20 MiB, while the AppImage adds 20 MiB
-and a second copy of GTK. The release is for the machines that do not have Nix, GTK or a matching
-glibc. On those, one file is the whole installation.
+Going from 897 MiB to 20 MiB, the main cost is extended compilation time; going from ~38 minutes to
+... because of recompiling stripped dependencies. Fortunately, those cache as separate derivations
+in the Nix store, so applying the [nix-community/cache-nix-action][cache-nix-action] build cache,
+they probably won't change.
+
+[cache-nix-action]: https://github.com/sshine/glimt/blob/f4e2c363b0c8f4850fcb8af0fbd934e81453acf2/.github/workflows/release.yml#L24-L40
