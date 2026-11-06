@@ -130,7 +130,7 @@ by the binary itself and knows your chart names, which is the difference between
     {
       devshells.default = {
         packages = [
-          inputs.helm-vendor.packages.${system}.default
+          inputs.helm-vendor.packages.${system}.helm-vendor-bin
           pkgs.kubernetes-helm
           pkgs.betterleaks
           pkgs.just
@@ -148,10 +148,14 @@ by the binary itself and knows your chart names, which is the difference between
 }
 ```
 
+`helm-vendor-bin` is the prebuilt release tarball for the platform, so no Rust toolchain enters
+the devshell's build closure. The `default` package builds the same binary from source, which is
+what you want only when you are changing `helm-vendor` itself.
+
 If you do not want the flake input, the binary is a `nix run` away:
 
 ```console
-$ nix run git+https://github.com/sshine/helm-vendor -- --help
+$ nix run github:sshine/helm-vendor#helm-vendor-bin -- --help
 ```
 
 ## Adding the first charts
