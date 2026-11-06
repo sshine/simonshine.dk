@@ -1,7 +1,7 @@
 +++
 date = '2026-11-04T00:56:50+02:00'
 draft = false
-title = "A poor man's Nix binary cache"
+title = "GitHub Releases: A poor man's Nix binary cache"
 tags = ['nix', 'rust', 'forgejo']
 +++
 
@@ -395,7 +395,7 @@ tests. `secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN` falls back to the automat
 secret is only needed on an instance where that token lacks the scope. Mine needed a PAT for pushing
 to the package registry, so I left the escape hatch in.
 
-`runs-on: nixos` is my own Nix-based runner image, explained in [A poor man's Nix cache](/articles/poor-mans-nix-cache/).
+`runs-on: nixos` is a Nix-based runner image, explained in [A poor man's Nix cache](/articles/poor-mans-nix-ci-cache/).
 
 One Forgejo setting thing that makes the consuming side work without credentials:
 
@@ -411,12 +411,3 @@ service = {
 your instance is private, the fetch needs a `netrc-file` in `nix.conf`, and then the flake is no
 longer usable by anyone who has not configured it. I would rather have the binaries public and the
 source private than the other way around.
-
-## What this is not
-
-A real binary cache can substitute *any* derivation by output hash, including ones you have
-never built. This one substitutes a single package by a URL and a hash somebody wrote down, and
-that hash is a line in a commit.
-
-For a tool that other flakes depend on, the alternative is every consumer compiling Rust, and the
-ceremony pays for itself. For anything else, run attic.

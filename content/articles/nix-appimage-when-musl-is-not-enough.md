@@ -1,13 +1,13 @@
 +++
 date = '2026-11-05T15:03:58+01:00'
-draft = true
+draft = false
 title = 'nix-appimage: When musl is not enough'
 tags = ['nix', 'rust']
 +++
 
-The static musl recipe from [A poor man's Nix binary cache][pmnbc] works because a CLI's runtime is
-glibc plus a few libraries. Programs that depend on GTK or similar large, complicated libraries
-don't compile well to static binaries.
+The static musl recipe from [GitHub Releases: A poor man's Nix binary cache][pmnbc] works because a
+CLI's runtime is glibc plus a few libraries. Programs that depend on GTK or similar large,
+complicated libraries don't compile well to static binaries.
 
 [pmnbc]: /articles/poor-mans-nix-binary-cache/
 
