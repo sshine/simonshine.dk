@@ -18,6 +18,14 @@ const bars = [
   "bar-scrolls",
   "bar-scythes",
   "bar-equations",
+  "bar-eye-tentacles",
+  "bar-ruins",
+  "bar-iron-fence",
+  "bar-aliens",
+  "bar-dice",
+  "bar-candles",
+  "bar-potions",
+  "bar-cosmic-eye",
 ];
 
 for (let i = bars.length - 1; i > 0; i--) {
