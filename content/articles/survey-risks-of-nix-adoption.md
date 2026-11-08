@@ -5,11 +5,13 @@ title = 'Survey: Risks of Nix Adoption'
 tags = ['nix', 'security']
 +++
 
-The 2025 Nix community survey asked 3,399 users what they would improve. The top three
-answers were flakes, error messages, and the reference manual.[^survey25] That is a strange
-list for a tool whose selling point is reproducibility.
+The 2025 Nix community survey asked users what they would improve. Of 3,399 respondents, 28.9% had
+used Nix for under a year and 38.9% described themselves as beginners. Asked what to improve, they
+picked flakes (50.3%), error messages (47.6%), and the reference manual (41.5%).[^survey25]
 
 Nix can pin a compiler and rebuild a system from a lock file.
+
+But what are the risks that people associate or report with adopting Nix?
 
 For the sake of evaluating risks of adopting Nix, the risk factors that people report online are
 divided into the following categories:
@@ -22,12 +24,9 @@ divided into the following categories:
 
 ## tl;dr
 
-- Of 3,399 respondents, 28.9% had used Nix for under a year and 38.9% described themselves
-  as beginners. Asked what to improve, they picked flakes (50.3%), error messages (47.6%),
-  and the reference manual (41.5%).[^survey25]
-- NixOS does not follow FHS. Vendor binaries need packaging, `nix-ld`, or
-  `buildFHSEnv`.[^faq]
-- Flakes are experimental and used by 78.9%. Stabilisation was rejected in November
+- NixOS does not follow [FHS][fhs] (Filesystem Hierarchy Standard). Vendor binaries need packaging,
+  `nix-ld`, or `buildFHSEnv`.[^faq]
+- Flakes are experimental and are used by 78.9%. Stabilisation was rejected in November
   2025.[^flakes][^vote]
 - NixOS stable gets seven months of fixes. There is no free LTS. Rollback does not undo a
   database migration.[^release][^rollback]
@@ -37,12 +36,14 @@ divided into the following categories:
   survey users.[^lwn][^survey25]
 - A dev shell does not commit you to the operating-system risks.
 
-## The learning bill
+[fhs]: https://jorel.dev/NixOS4Noobs/fhs.html
 
-The first cost is not a package. It is the mental model. The survey is a proxy for where
-users get stuck: 62.5% rely on tutorials, 23.3% feel comfortable contributing upstream, and
-4.0% claim to understand every error message.[^survey25] The 2024 survey found 39% had used
-Nix for under a year and 41% called themselves beginners.[^survey24]
+## The cost of learning
+
+The primary and most outspoken cost of Nix adoption is the mental model. The survey is a proxy for
+where users get stuck: 62.5% rely on tutorials, 23.3% feel comfortable contributing upstream, and
+4.0% claim to understand every error message.[^survey25] The 2024 survey found 39% had used Nix for
+under a year and 41% called themselves beginners.[^survey24]
 
 Practitioners describe the same wall. Pierre Zemb says it takes months to feel productive,
 and that the language is the hardest part.[^zemb]
