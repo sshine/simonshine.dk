@@ -450,3 +450,8 @@ table {
     margin: 0 -3px;
   }
 }
+
+/* Adjacent footnote markers read as 1, 2 rather than 12. */
+sup[id^="fnref"] + sup[id^="fnref"]::before {
+  content: ", ";
+}
