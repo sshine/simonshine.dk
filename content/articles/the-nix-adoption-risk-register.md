@@ -1,23 +1,30 @@
 +++
 date = '2026-11-08T12:03:03+01:00'
 draft = true
-title = 'The Nix adoption risk register'
+title = 'Survey: Risks of Nix Adoption'
 tags = ['nix', 'security']
 +++
 
 The 2025 Nix community survey asked 3,399 users what they would improve. The top three
 answers were flakes, error messages, and the reference manual.[^survey25] That is a strange
-list for a tool whose selling point is reproducibility. It is also where an adoption
-decision starts.
+list for a tool whose selling point is reproducibility.
 
-Nix can pin a compiler and rebuild a system from a lock file. The bill arrives in the parts
-that are not in the lock file: the knowledge, the platform exceptions, the cache, the
-upgrade calendar, and the project behind it.
+Nix can pin a compiler and rebuild a system from a lock file.
+
+For the sake of evaluating risks of adopting Nix, the risk factors that people report online are
+divided into the following categories:
+
+- the knowledge
+- the platform exceptions
+- the cache
+- the upgrade calendar
+- the project governance
 
 ## tl;dr
 
-- 3,399 responses: 28.9% under a year, 38.9% beginners. Top improvements: flakes 50.3%,
-  error messages 47.6%, reference manual 41.5%.[^survey25]
+- Of 3,399 respondents, 28.9% had used Nix for under a year and 38.9% described themselves
+  as beginners. Asked what to improve, they picked flakes (50.3%), error messages (47.6%),
+  and the reference manual (41.5%).[^survey25]
 - NixOS does not follow FHS. Vendor binaries need packaging, `nix-ld`, or
   `buildFHSEnv`.[^faq]
 - Flakes are experimental and used by 78.9%. Stabilisation was rejected in November
