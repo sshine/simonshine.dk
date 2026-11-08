@@ -1,6 +1,6 @@
 +++
 date = '2026-11-08T00:07:52+01:00'
-draft = true
+draft = false
 title = 'OIDC kubeconfigs with Zitadel'
 tags = ['kubernetes', 'nix', 'kubenix']
 +++
@@ -10,17 +10,17 @@ Kubeconfig that outlive the persons holding it are a compliance anti-pattern.
 [Zitadel][zitadel] can be the issuer instead: `kubectl` opens a browser, gets a short-lived token,
 and the API server maps a project role to a Kubernetes group.
 
-*(Note, Zitadel is a modern replacement for Keycloak. You can use Keycloak for all of this, too.)*
+*(Zitadel is a modern replacement for Keycloak. You can use Keycloak for all of this, too.)*
 
 [zitadel]: https://zitadel.com/
 
 From a fresh cluster:
 
-1. vendor Zitadel,
+1. vendor and deploy Zitadel,
 2. create one project role,
 3. point `kubectl` at the OIDC app.
 
-## Deploy Zitadel
+## Vendor and deploy Zitadel
 
 Vendor the Zitadel chart [using the `helm-vendor` CLI][helm-vendor-post]:
 
@@ -49,10 +49,27 @@ The values that matter are the external domain and the masterkey Secret.
     values = {
       postgresql.enabled = true;
       zitadel.masterkeySecretName = "zitadel-masterkey";
-      zitadel.configmapConfig = { ExternalDomain = "zitadel.example.com"; ExternalSecure = true; ExternalPort = 443; };
-      zitadel.configmapConfig.FirstInstance.Org.Human = { UserName = "admin"; Email = "admin@example.com"; Password = "ChangeMe123!"; PasswordChangeRequired = true; };
-      gateway.httpRoute = { enabled = true; hostnames = [ "zitadel.example.com" ]; parentRefs = [ { name = "main"; namespace = "gateway"; } ]; };
-      login.gateway.httpRoute = { enabled = true; hostnames = [ "zitadel.example.com" ]; parentRefs = [ { name = "main"; namespace = "gateway"; } ]; };
+      zitadel.configmapConfig = {
+        ExternalDomain = "zitadel.example.com";
+        ExternalSecure = true;
+        ExternalPort = 443;
+      };
+      zitadel.configmapConfig.FirstInstance.Org.Human = {
+        UserName = "john";
+        Email = "john@example.com";
+        Password = "ChangeMe123!";
+        PasswordChangeRequired = true;
+      };
+      gateway.httpRoute = {
+        enabled = true;
+        hostnames = [ "zitadel.example.com" ];
+        parentRefs = [ { name = "main"; namespace = "gateway"; } ];
+      };
+      login.gateway.httpRoute = {
+        enabled = true;
+        hostnames = [ "zitadel.example.com" ];
+        parentRefs = [ { name = "main"; namespace = "gateway"; } ];
+      };
     };
   }));
 }
@@ -98,11 +115,11 @@ role can still log in. Grant `cluster-admin` to the people who should have it.
 
 The client must request the project audience, or the action doesn't see any grants.
 
-The kubeconfig below does that.
+The kubeconfig below makes the client do that.
 
 The cluster repo reconciles the same objects with an in-cluster Job similar to the one described in
-the article [A Vault Job](/articles/a-vault-job), with Vault calls replaced by Zitadel's management
-API.
+the article [A Vault Job](/articles/a-vault-job#nobody-needs-to-know), with Vault calls replaced by
+Zitadel's management API.
 
 ## A kubeconfig that expires
 
