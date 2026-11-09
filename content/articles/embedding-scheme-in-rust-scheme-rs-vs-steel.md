@@ -1,6 +1,6 @@
 +++
 date = '2026-11-08T22:30:23+01:00'
-draft = true
+draft = false
 title = 'Embedding Scheme in Rust: scheme-rs vs. steel'
 tags = ['rust', 'scheme']
 +++
@@ -11,8 +11,7 @@ your process. Steel is the older one: first commit February 2020, 1,213 commits,
 has 263 commits, version 0.2.0, 342 stars, and about 66% from Matt Plant with another 26% from
 Linus Shoravi.
 
-Steel implements [R5RS][r5]; scheme-rs implements [R6RS][r6]. That turns out to explain most of the
-differences.
+Steel implements [R5RS][r5]; scheme-rs implements [R6RS][r6].
 
 [steel]: https://github.com/mattwparas/steel
 [scheme-rs]: https://github.com/maplant/scheme-rs
@@ -26,8 +25,7 @@ differences.
 - scheme-rs is R6RS with a full numeric tower, R6RS conditions, records and ports, delimited
   continuations, a concurrent cycle-collecting GC and `Send`/`Sync` async embedding. It has 60 Rust
   tests, 39 of which belong to the GC.
-- Steel is the more adopted project. It is also the one whose R5RS and R7RS suites I could not find
-  in CI.
+- Steel is the more adopted project. But I couldn't find its R5RS and R7RS suites in CI.
 - Neither is 1.0, both are bus-factor-1, and both have real correctness bugs open.
 - Steel is MIT/Apache-2.0, builds on Linux, macOS and Windows, and its core targets wasm. scheme-rs
   is MPL-2.0 and tests on Linux.
@@ -190,4 +188,4 @@ the language semantics are the point and I need threads or async, I take scheme-
 
 The first thing I would do before depending on Steel is wire its 288 R5RS assertions into CI. The
 first thing I would do before depending on scheme-rs is run its missing R6RS libraries against real
-code. Neither project has done the other's homework.
+code. Neither project has done the other's work.
