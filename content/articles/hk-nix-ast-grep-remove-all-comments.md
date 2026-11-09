@@ -2,7 +2,7 @@
 date = '2026-10-21T14:10:00+02:00'
 draft = false
 title = 'hk-nix + ast-grep: Remove all comments'
-tags = ['nix', 'rust']
+tags = ['nix', 'rust', 'git', 'hk-nix', 'hooks']
 +++
 
 Here's a git pre-commit hook for removing all comments that relies on [hk-nix][hk-nix-article].

@@ -2,7 +2,7 @@
 date = '2026-07-05T02:35:37+02:00'
 draft = false
 title = 'A dendritic sops-nix flake template'
-tags = ['nix']
+tags = ['nix', 'dendritic', 'devshell', 'flake-parts', 'secrets']
 +++
 
 This tutorial sets up a flake using flake-parts, import-tree, devshell and sops-nix.

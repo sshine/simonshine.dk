@@ -2,6 +2,7 @@
 date = '2026-08-01T00:00:00+01:00'
 draft = false
 title = 'Git config-based hooks with hk-nix'
+tags = ['devshell', 'git', 'hk-nix', 'hooks', 'nix']
 +++
 
 [hk][hk] is a fast, modern git hook manager and project linter configured in [Pkl][pkl].

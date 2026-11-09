@@ -2,7 +2,7 @@
 date = '2022-01-29T16:21:50+01:00'
 draft = false
 title = 'A Terraform DNS moment'
-tags = ['terraform']
+tags = ['terraform', 'dns']
 +++
 
 **tl;dr:** I stuck the IPv4 and IPv6 address of my VPS into an SPF record field text.

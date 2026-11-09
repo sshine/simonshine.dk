@@ -2,7 +2,7 @@
 date = '2026-07-05T21:01:12+02:00'
 draft = false
 title = 'Non-interactive Tailscale API login with sops-nix'
-tags = ['nix', 'tailscale']
+tags = ['nix', 'tailscale', 'secrets']
 +++
 
 For the past three years I've connected my Nix machines using Tailscale by running `sudo tailscale login` once per machine.

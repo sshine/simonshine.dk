@@ -2,7 +2,7 @@
 date = '2026-02-02T00:44:38+01:00'
 draft = false
 title = 'Speeding up CI more with Nix'
-tags = ['nix']
+tags = ['nix', 'ci']
 +++
 
 Recently I wrote [Speeding up CI with Nix](/articles/speeding-up-ci-with-nix/).

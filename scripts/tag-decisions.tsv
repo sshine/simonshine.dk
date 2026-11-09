@@ -1,0 +1,26 @@
+# Tag candidate decisions.
+#
+# status	term	reason
+#
+# "rejected" terms are removed from tag-candidates and tag-proposals.
+# "accepted" terms are documentation only: they are expected to become
+# established tags through front matter, and remain available to suggestions.
+accepted	hk-nix	selected as the tool/series tag
+accepted	hooks	selected as a browsing selector alongside git
+rejected	pre-commit	overlaps git/hooks/hk-nix
+rejected	lefthook	overlaps git/hooks/hk-nix
+rejected	nixos-anywhere	too specific; nix is the tag
+rejected	sops-nix	prefer secrets
+rejected	actions	use ci
+rejected	ai	use agentic
+rejected	lefthook-nix	overlaps git/hooks/hk-nix
+rejected	opencode	use agentic
+rejected	action	use ci
+accepted	ci	selected as a cross-cutting build/cache/runner tag
+accepted	devshell	selected for articles where the devshell is part of the mechanism
+accepted	dendritic	selected as the series tag for dendritic Nix
+accepted	dns	accepted as a niche tag; needs a third article
+accepted	flake-parts	selected for articles built around flake-parts
+accepted	hetzner	selected for the self-hosted Hetzner cluster
+accepted	talos	selected for the self-hosted Talos cluster
+accepted	vault	accepted as a niche tag; needs a third article

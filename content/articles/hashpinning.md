@@ -2,7 +2,7 @@
 date = '2026-08-08T01:59:35+02:00'
 draft = false
 title = 'Hashpinning'
-tags = ['rust', 'nix', 'security']
+tags = ['rust', 'nix', 'security', 'ci']
 +++
 
 GitHub Actions workflows usually start like this:

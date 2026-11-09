@@ -2,6 +2,7 @@
 date = '2026-02-14T15:56:43+01:00'
 draft = false
 title = 'A git primer for future colleagues'
+tags = ['git']
 +++
 
 You become a git expert when you learn about `git reflog`. Not because it's an advanced feature.

@@ -2,7 +2,7 @@
 date = '2026-05-15T02:37:41+02:00'
 draft = false
 title = 'Managing Secrets privately with sops-nix'
-tags = ['nix', 'kubenix', 'secrets']
+tags = ['nix', 'kubenix', 'secrets', 'talos', 'vault']
 +++
 
 ## tl;dr

@@ -4,6 +4,18 @@ image_name := "git.shine.town/sites/simonshine.dk"
 list:
     just --list
 
+# List active article tags and counts
+tags:
+    ./scripts/tags.sh tags
+
+# List candidate tags (default 25); pass a number to change the limit
+tag-candidates limit='25':
+    ./scripts/tags.sh tag-candidates --limit {{ limit }}
+
+# One line per article: current tags, established suggestions, candidate suggestions
+tag-proposals:
+    ./scripts/tags.sh tag-proposals
+
 # Build the static-site container image to image.tar.gz
 build-image:
     nix build .#image -o image.tar.gz

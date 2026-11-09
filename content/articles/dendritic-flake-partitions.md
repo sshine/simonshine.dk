@@ -2,7 +2,7 @@
 date = '2026-06-21T13:39:00+02:00'
 draft = false
 title = 'Dendritic flake partitions'
-tags = ['nix']
+tags = ['nix', 'dendritic', 'flake-parts']
 +++
 
 ## tl;dr

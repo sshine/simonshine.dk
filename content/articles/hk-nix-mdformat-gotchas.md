@@ -2,7 +2,7 @@
 date = '2026-09-27T21:31:10+02:00'
 draft = false
 title = 'hk-nix and mdformat gotchas'
-tags = ['nix', 'rust']
+tags = ['nix', 'rust', 'git', 'hk-nix', 'hooks']
 +++
 
 I run [mdformat][mdformat] as a pre-commit hook via [hk-nix][hk-nix] and [treefmt-nix][treefmt-nix].

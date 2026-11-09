@@ -2,6 +2,7 @@
 date = '2026-08-15T11:37:45+02:00'
 draft = false
 title = 'Controlling the Knot nameserver'
+tags = ['dns']
 +++
 
 [Knot DNS server][knot-dns] is an open-source, high-performance, secure and stable

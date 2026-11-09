@@ -2,6 +2,7 @@
 date = '2026-04-23T22:06:40+02:00'
 draft = false
 title = 'NixOS runners on Forgejo Actions'
+tags = ['ci', 'forgejo', 'kubernetes', 'nix', 'talos']
 +++
 
 > **Note:** You can see the project in action here: https://git.shine.town/infra/runners

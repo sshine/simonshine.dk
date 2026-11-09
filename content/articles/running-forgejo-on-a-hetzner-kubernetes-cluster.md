@@ -2,7 +2,7 @@
 date = '2026-10-25T13:00:29+01:00'
 draft = false
 title = 'Running Forgejo on a Hetzner Kubernetes cluster'
-tags = ['nix', 'kubernetes', 'kubenix', 'forgejo']
+tags = ['nix', 'kubernetes', 'forgejo', 'talos', 'hetzner']
 +++
 
 I host my own git. Since May 2026 that has been a single [Forgejo][fj] pod on a Talos cluster at

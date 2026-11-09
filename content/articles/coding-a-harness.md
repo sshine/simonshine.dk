@@ -2,6 +2,7 @@
 date = '2026-10-24T13:27:13+02:00'
 draft = false
 title = 'Coding a Harness'
+tags = ['agentic', 'claude']
 +++
 
 Except for a couple of months using GLM-5.1 because I went to China and couldn't access Claude Code,

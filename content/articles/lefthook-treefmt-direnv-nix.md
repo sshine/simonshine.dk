@@ -2,6 +2,7 @@
 date = '2026-03-07T21:47:14+01:00'
 draft = false
 title = 'Using lefthook and treefmt with Nix'
+tags = ['devshell', 'git', 'hooks', 'nix']
 +++
 
 In my recent attempts to modernize my CI pipelines, I've experimented with and subsequently let go

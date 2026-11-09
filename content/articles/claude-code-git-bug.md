@@ -2,7 +2,7 @@
 date = '2025-07-21T13:03:06Z'
 draft = false
 title = 'Claude Code og git-bug: Når AI har brug for issue tracking'
-tags = ['datamatik', 'git']
+tags = ['datamatik', 'git', 'agentic', 'claude']
 +++
 
 Jeg prøvede for nyligt at kombinere Claude Code med issue tracking.

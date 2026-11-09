@@ -2,6 +2,7 @@
 date = '2026-02-22T23:22:30+01:00'
 draft = false
 title = 'Benchmarking Claude Code vs. OpenCode on AutoAgents'
+tags = ['agentic', 'claude', 'rust']
 +++
 
 ## tl;dr

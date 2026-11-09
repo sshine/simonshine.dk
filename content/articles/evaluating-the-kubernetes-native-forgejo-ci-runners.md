@@ -2,7 +2,7 @@
 date = '2026-10-25T13:19:41+01:00'
 draft = false
 title = 'Evaluating the Kubernetes-native Forgejo CI runners'
-tags = ['nix', 'kubernetes', 'kubenix', 'forgejo']
+tags = ['nix', 'kubernetes', 'forgejo', 'talos', 'ci']
 +++
 
 Until 9 October, CI for my [Forgejo][fj] ran in docker-in-docker: [forgejo-runner][fjr] 6.3.1

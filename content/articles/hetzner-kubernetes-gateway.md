@@ -2,7 +2,7 @@
 date = '2026-11-02T23:44:40+01:00'
 draft = true
 title = 'A gateway instead of a load balancer'
-tags = ['kubernetes', 'nix', 'forgejo']
+tags = ['kubernetes', 'nix', 'forgejo', 'talos', 'hetzner']
 +++
 
 When running Kubernetes via Talos Linux on Hetzner VMs, I wanted to hide my nodes on a virtual

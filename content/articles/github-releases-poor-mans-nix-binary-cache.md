@@ -2,7 +2,7 @@
 date = '2026-11-04T00:56:50+02:00'
 draft = false
 title = "GitHub Releases: A poor man's Nix binary cache"
-tags = ['nix', 'rust', 'forgejo']
+tags = ['nix', 'rust', 'forgejo', 'ci']
 +++
 
 ## tl;dr

@@ -2,7 +2,7 @@
 date = '2026-10-21T11:20:00+02:00'
 draft = false
 title = "A poor man's Nix CI cache"
-tags = ['nix', 'kubernetes', 'forgejo']
+tags = ['nix', 'kubernetes', 'forgejo', 'ci']
 +++
 
 A thing I often come back to is [speeding][ci-nix-1] [up][ci-nix-2] CI. For almost 20 years I've

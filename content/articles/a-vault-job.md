@@ -2,7 +2,7 @@
 date = '2026-10-21T13:04:12+02:00'
 draft = false
 title = 'A Vault Job'
-tags = ['nix', 'kubernetes', 'secrets', 'kubenix']
+tags = ['nix', 'kubernetes', 'secrets', 'kubenix', 'vault']
 +++
 
 When deploying software services, they usually link to other services using long-lived static

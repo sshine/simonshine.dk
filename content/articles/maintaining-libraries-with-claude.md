@@ -2,7 +2,7 @@
 date = '2026-01-14T23:38:11+01:00'
 draft = false
 title = 'Maintaining libraries with Claude'
-tags = ['haskell', 'claude']
+tags = ['haskell', 'claude', 'agentic']
 +++
 
 ## tl;dr

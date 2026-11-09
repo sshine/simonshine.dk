@@ -2,7 +2,7 @@
 date = '2026-11-05T11:19:29+02:00'
 draft = false
 title = 'A gallery of hk-nix git hooks'
-tags = ['nix', 'git']
+tags = ['nix', 'git', 'hk-nix', 'hooks']
 +++
 
 I've been obsessed with git commit hooks this year. Since discovering [lefthook.nix][lefthook-nix]

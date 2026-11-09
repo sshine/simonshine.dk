@@ -2,7 +2,7 @@
 date = '2026-07-05T22:51:02+02:00'
 draft = false
 title = 'sops-nix templates for passwords in legacy configs'
-tags = ['nix']
+tags = ['nix', 'secrets']
 +++
 
 **Note:** This article builds on my [dendritic sops-nix flake template][sops-nix-template].

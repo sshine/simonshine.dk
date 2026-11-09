@@ -2,7 +2,7 @@
 date = '2026-01-25T12:28:38+01:00'
 draft = false
 title = 'Speeding up CI with Nix'
-tags = ['nix']
+tags = ['nix', 'ci']
 +++
 
 In the article [Maintaining libraries with Claude](/articles/maintaining-libraries-with-claude) I

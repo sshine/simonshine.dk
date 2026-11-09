@@ -2,7 +2,7 @@
 date = '2026-11-08T00:07:52+01:00'
 draft = false
 title = 'OIDC kubeconfigs with Zitadel'
-tags = ['kubernetes', 'nix', 'kubenix']
+tags = ['kubernetes', 'nix', 'kubenix', 'talos']
 +++
 
 Kubeconfig that outlive the persons holding it are a compliance anti-pattern.

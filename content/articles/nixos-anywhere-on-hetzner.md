@@ -2,7 +2,7 @@
 date = '2026-02-20T00:55:22+01:00'
 draft = false
 title = 'nixos-anywhere on Hetzner'
-tags = ['nix']
+tags = ['nix', 'hetzner']
 +++
 
 ## tl;dr:

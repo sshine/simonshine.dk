@@ -2,7 +2,7 @@
 date = '2026-10-21T13:19:47+02:00'
 draft = false
 title = 'Four ways to install Nix in GitHub Actions'
-tags = ['nix']
+tags = ['nix', 'ci']
 +++
 
 To run Nix in GitHub Actions, the default CI runner needs Nix installed first.
