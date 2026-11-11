@@ -1,6 +1,6 @@
 +++
 date = '2026-08-15T11:37:45+02:00'
-draft = false
+draft = true
 title = 'Controlling the Knot nameserver'
 tags = ['dns']
 +++
